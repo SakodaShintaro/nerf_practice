@@ -1,9 +1,14 @@
-NeRFの実装練習
+# NeRFの実装練習
 
-参考資料)
+## 参考資料
 https://blog.albert2005.co.jp/2020/05/08/nerf/
 
-使用データ)
+## Dockerコンテナ生成コマンド
+```bash
+docker run --gpus all -it --name nerf_practice_container nvcr.io/nvidia/pytorch:22.12-py3 bash
+```
+
+## 使用データ
 https://www.vincentsitzmann.com/deepvoxels/
 
 より
