@@ -23,3 +23,9 @@ nerf_practice/
     |--validation/
 ```
 となっている想定
+
+## 環境構築
+libtorchの導入
+```bash
+./shell_script/download_libtorch.sh 
+```
