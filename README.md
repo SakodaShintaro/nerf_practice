@@ -29,3 +29,8 @@ libtorchの導入
 ```bash
 ./shell_script/download_libtorch.sh 
 ```
+
+OpenCVの導入
+```bash
+sudo apt install libopencv-dev
+```
