@@ -33,16 +33,4 @@ std::pair<torch::Tensor, torch::Tensor> VolumeRenderingWithRadianceField(
     const Vec2D<float>& t_n, const Vec2D<float>& t_f, int32_t N_c, int32_t N_f, const RGB& c_bg);
 std::pair<Vec2D<Position>, Vec3D<Position>> CameraParamsToRays(const View& view);
 
-class NeRF : public torch::nn::Module {
- public:
-  NeRF();
-  torch::Device device();
-  std::pair<torch::Tensor, torch::Tensor> forward(const View& view);
-
- private:
-  static constexpr int32_t N_c = 64;
-  static constexpr int32_t N_f = 128;
-  static constexpr int32_t N_SAMPLES = 2048;
-};
-
 #endif
