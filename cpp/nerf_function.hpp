@@ -7,24 +7,43 @@
 #include <cstdint>
 #include <vector>
 
-using Vec2D = std::vector<std::vector<float>>;
-using Vec3D = std::vector<Vec2D>;
-using Partition = std::vector<std::vector<float>>;
+using Position = std::array<float, 3>;
+
+template <class T>
+using Vec2D = std::vector<std::vector<T>>;
+template <class T>
+using Vec3D = std::vector<Vec2D<T>>;
+
+using Partition = Vec2D<float>;
 
 using RGB = std::array<float, 3>;
 using Weight = float;
 
 Partition SplitRay(float t_n, float t_f, int32_t N, int32_t batch_size);
-Vec2D SampleCoarse(const Partition& partition);
-Vec2D _pcpdf(const Partition& partition, const Vec2D& weights, int32_t N_s);
-Vec2D SampleFine(const Partition& partition, const Vec2D& weights, const Vec2D& t_c, int32_t N_f);
-Vec3D Ray(const Vec2D& o, const Vec2D& d, const Vec2D& t);
-std::pair<RGB, Weight> _rgb_and_weight(torch::nn::Module func, const Vec2D& o, const Vec2D& d, const Vec2D& t,
-                                       int32_t N);
-std::pair<torch::Tensor, torch::Tensor> VolumeRenderingWithRadianceField(torch::nn::Module func_c,
-                                                                         torch::nn::Module func_f, const Vec2D& o,
-                                                                         const Vec2D& d, const Vec2D& t_n,
-                                                                         const Vec2D& t_f, int32_t N_c, int32_t N_f,
-                                                                         const RGB& c_bg);
+Vec2D<float> SampleCoarse(const Partition& partition);
+Vec2D<float> _pcpdf(const Partition& partition, const Vec2D<float>& weights, int32_t N_s);
+Vec2D<float> SampleFine(const Partition& partition, const Vec2D<float>& weights, const Vec2D<float>& t_c, int32_t N_f);
+Vec3D<float> Ray(const Vec2D<float>& o, const Vec2D<float>& d, const Vec2D<float>& t);
+std::pair<RGB, Weight> _rgb_and_weight(torch::nn::Module func, const Vec2D<float>& o, const Vec2D<float>& d,
+                                       const Vec2D<float>& t, int32_t N);
+std::pair<torch::Tensor, torch::Tensor> VolumeRenderingWithRadianceField(
+    torch::nn::Module func_c, torch::nn::Module func_f, const Vec2D<float>& o, const Vec2D<float>& d,
+    const Vec2D<float>& t_n, const Vec2D<float>& t_f, int32_t N_c, int32_t N_f, const RGB& c_bg);
+
+std::pair<Vec2D<Position>, Vec3D<Position>> CameraParamsToRays(float f, float cx, float cy, const Vec2D<float>& pose,
+                                                               int32_t width, int32_t height);
+
+class NeRF : public torch::nn::Module {
+ public:
+  NeRF();
+  torch::Device device();
+  std::pair<torch::Tensor, torch::Tensor> forward(float f, float cx, float cy, const Vec2D<float>& pose, int32_t width,
+                                                  int32_t height);
+
+ private:
+  static constexpr int32_t N_c = 64;
+  static constexpr int32_t N_f = 128;
+  static constexpr int32_t N_SAMPLES = 2048;
+};
 
 #endif
