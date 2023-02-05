@@ -8,7 +8,7 @@ torch::Tensor gamma(torch::Tensor p, int32_t L);
 class RadianceField : public torch::nn::Module {
  public:
   RadianceField(int32_t L_x = 10, int32_t L_d = 4);
-  torch::Tensor forward(torch::Tensor x);
+  std::pair<torch::Tensor, torch::Tensor> forward(torch::Tensor x, torch::Tensor d);
 
  private:
   torch::nn::Linear layer0_;
