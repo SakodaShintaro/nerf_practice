@@ -20,5 +20,5 @@ file(GLOB SRCS ./*.cpp)
 add_executable(nerf_practice ${SRCS})
 
 # OpenCVの設定
-target_include_directories(nerf_practice PUBLIC ${OpenCV_INCLUDE_DIRS})
-target_link_libraries(nerf_practice PUBLIC ${OpenCV_LIBRARIES})
+target_include_directories(nerf_practice PUBLIC ${OpenCV_INCLUDE_DIRS} ${TORCH_INCLUDE_DIRS})
+target_link_libraries(nerf_practice PUBLIC ${OpenCV_LIBRARIES} ${TORCH_LIBRARIES})
