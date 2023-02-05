@@ -7,6 +7,8 @@
 #include <cstdint>
 #include <vector>
 
+#include "view.hpp"
+
 using Position = std::array<float, 3>;
 
 template <class T>
@@ -29,16 +31,13 @@ std::pair<RGB, Weight> _rgb_and_weight(torch::nn::Module func, const Vec2D<float
 std::pair<torch::Tensor, torch::Tensor> VolumeRenderingWithRadianceField(
     torch::nn::Module func_c, torch::nn::Module func_f, const Vec2D<float>& o, const Vec2D<float>& d,
     const Vec2D<float>& t_n, const Vec2D<float>& t_f, int32_t N_c, int32_t N_f, const RGB& c_bg);
-
-std::pair<Vec2D<Position>, Vec3D<Position>> CameraParamsToRays(float f, float cx, float cy, const Vec2D<float>& pose,
-                                                               int32_t width, int32_t height);
+std::pair<Vec2D<Position>, Vec3D<Position>> CameraParamsToRays(const View& view);
 
 class NeRF : public torch::nn::Module {
  public:
   NeRF();
   torch::Device device();
-  std::pair<torch::Tensor, torch::Tensor> forward(float f, float cx, float cy, const Vec2D<float>& pose, int32_t width,
-                                                  int32_t height);
+  std::pair<torch::Tensor, torch::Tensor> forward(const View& view);
 
  private:
   static constexpr int32_t N_c = 64;
