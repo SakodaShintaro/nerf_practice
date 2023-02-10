@@ -1,0 +1,6 @@
+*.pyc
+*.npz
+*.pt
+*.png
+*.gif
+*.state
