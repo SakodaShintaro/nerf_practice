@@ -3,6 +3,7 @@ import os
 import numpy as np
 from PIL import Image
 from nerf_model import camera_params_to_rays
+from constants import DATASET_PATH, RESULT_DIR
 
 
 def get_view(dataset_path: str):
@@ -63,16 +64,13 @@ def get_dataset_raw(dataset_path: str):
     return dataset_raw
 
 
-dataset_path = '/root/nerf_practice/data/train/greek/'
-
-
 if __name__ == "__main__":
-    f, cx, cy, width, height = get_view(dataset_path)
-    dataset_raw = get_dataset_raw(dataset_path)
+    f, cx, cy, width, height = get_view(DATASET_PATH)
+    dataset_raw = get_dataset_raw(DATASET_PATH)
 
-    os = []
-    ds = []
-    Cs = []
+    o_list = []
+    d_list = []
+    C_list = []
 
     for data in dataset_raw:
         pose = data['pose']
@@ -85,15 +83,16 @@ if __name__ == "__main__":
         d = d.reshape(-1, 3)
         C = C.reshape(-1, 3)
 
-        os.append(o)
-        ds.append(d)
-        Cs.append(C)
+        o_list.append(o)
+        d_list.append(d)
+        C_list.append(C)
 
-    os = np.concatenate(os)
-    ds = np.concatenate(ds)
-    Cs = np.concatenate(Cs)
+    o_list = np.concatenate(o_list)
+    d_list = np.concatenate(d_list)
+    C_list = np.concatenate(C_list)
 
-    dataset = {'o': os, 'd': ds, 'C': Cs}
+    dataset = {'o': o_list, 'd': d_list, 'C': C_list}
 
     # 保存しておく
-    np.savez('./dataset.npz', **dataset)
+    os.makedirs(RESULT_DIR, exist_ok=True)
+    np.savez(f'{RESULT_DIR}/dataset.npz', **dataset)
