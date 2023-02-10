@@ -5,6 +5,7 @@ from nerf_model import NeRF
 import torch
 import os
 from constants import DATASET_PATH, RESULT_DIR
+from tqdm import tqdm
 
 if __name__=="__main__":
     print(DATASET_PATH)
@@ -38,6 +39,7 @@ if __name__=="__main__":
     nerf = NeRF(t_n=0., t_f=2.5, c_bg=(1, 1, 1))
     nerf.load_state_dict(torch.load(f"{RESULT_DIR}/train/nerf_model.pt"))
     nerf.to("cuda")
+    nerf.eval()
     C_c, C_f = nerf(view)
 
     images = []
@@ -45,7 +47,7 @@ if __name__=="__main__":
     save_dir = f"{RESULT_DIR}/result_images"
     os.makedirs(save_dir, exist_ok=True)
 
-    for ind, a in enumerate(np.linspace(-np.pi, np.pi, 65)[:-1]):
+    for ind, a in enumerate(tqdm(np.linspace(-np.pi, np.pi, 65)[:-1])):
         c = np.cos(a)
         s = np.sin(a)
 
