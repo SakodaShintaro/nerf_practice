@@ -21,5 +21,6 @@ int main() {
     std::cout << pose_paths[i] << " " << image_paths[i] << std::endl;
     dataset_raw[i].pose = ParsePose(pose_paths[i]);
     dataset_raw[i].image = cv::imread(image_paths[i]);
+    GetRays(param, dataset_raw[i].pose);
   }
 }

@@ -104,7 +104,7 @@ Vec2D<float> SampleFine(const Partition& partition, const Vec2D<float>& weights,
   return t;
 }
 
-Vec3D<float> Ray(const Vec2D<float>& o, const Vec2D<float>& d, const Vec2D<float>& t) {
+Vec3D<float> MakeRay(const Vec2D<float>& o, const Vec2D<float>& d, const Vec2D<float>& t) {
   const int32_t batch_size = o.size();
   const int32_t N = t.front().size();
   Vec3D<float> result(batch_size, Vec2D<float>(N, std::vector<float>(3)));
@@ -132,4 +132,25 @@ std::pair<RGB, Weight> _rgb_and_weight(RadianceField func, const Vec2D<float>& o
 
   // torch::Tensor delta = torch::pad(t[:, 1:] - t[:, :-1], (0, 1), mode = "constanta", value = 1e8);
   // torch::Tensor mass = sigma[..., 0] * delta;
+}
+
+std::vector<Ray> GetRays(const CameraIntrinsicParameter& param, const Pose& pose) {
+  const Position center = pose.block(0, 3, 3, 1);
+
+  std::vector<Ray> rays;
+  for (int32_t i = 0; i < param.height; i++) {
+    for (int32_t j = 0; j < param.width; j++) {
+      const float y = (i + 0.5f - param.cy) / param.f;
+      const float x = (j + 0.5f - param.cx) / param.f;
+      const float z = 1.0f;
+      Eigen::Vector4f vec;
+      vec << x, y, z, 1.0f;
+      vec = pose * vec;
+      Position d = vec.block(0, 0, 3, 1);
+      d -= center;
+      d.normalize();
+      rays.emplace_back(center, d);
+    }
+  }
+  return rays;
 }
