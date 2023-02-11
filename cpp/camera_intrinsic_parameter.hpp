@@ -9,7 +9,6 @@ struct CameraIntrinsicParameter {
   float f;
   float cx;
   float cy;
-  std::vector<Pose> pose;
   int32_t width;
   int32_t height;
 };

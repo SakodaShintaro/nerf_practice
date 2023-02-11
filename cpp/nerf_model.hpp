@@ -9,7 +9,7 @@ class NeRF : public torch::nn::Module {
  public:
   NeRF();
   torch::Device device();
-  std::pair<torch::Tensor, torch::Tensor> forward(const View& view);
+  std::pair<torch::Tensor, torch::Tensor> forward(const CameraIntrinsicParameter& param);
 
  private:
   static constexpr int32_t N_c = 64;
