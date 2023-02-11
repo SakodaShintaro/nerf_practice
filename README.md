@@ -39,3 +39,8 @@ Eigenの導入
 ```bash
 sudo apt install libeigen3-dev -y
 ```
+
+clang-formatの導入
+```bash
+sudo apt install clang-format -y
+```
