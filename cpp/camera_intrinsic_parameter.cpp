@@ -1,4 +1,4 @@
-#include "view.hpp"
+#include "camera_intrinsic_parameter.hpp"
 #include <fstream>
 #include <iostream>
 

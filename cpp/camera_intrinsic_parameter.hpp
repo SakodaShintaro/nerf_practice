@@ -1,5 +1,5 @@
-#ifndef VIEW_HPP
-#define VIEW_HPP
+#ifndef CAMERA_INTRINSIC_PARAMETER_HPP
+#define CAMERA_INTRINSIC_PARAMETER_HPP
 
 #include <vector>
 

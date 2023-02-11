@@ -3,7 +3,7 @@
 
 #include <torch/torch.h>
 
-#include "view.hpp"
+#include "camera_intrinsic_parameter.hpp"
 
 class NeRF : public torch::nn::Module {
  public:

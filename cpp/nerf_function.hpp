@@ -8,8 +8,8 @@
 #include <cstdint>
 #include <vector>
 
+#include "camera_intrinsic_parameter.hpp"
 #include "neural_network.hpp"
-#include "view.hpp"
 
 using Position = Eigen::Vector3f;
 
