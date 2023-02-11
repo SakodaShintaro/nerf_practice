@@ -44,3 +44,8 @@ clang-formatの導入
 ```bash
 sudo apt install clang-format -y
 ```
+
+mypyの導入
+```bash
+pip install mypy
+```
