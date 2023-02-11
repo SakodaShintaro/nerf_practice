@@ -10,7 +10,7 @@ int main() {
   std::cout << "NeRF Practice" << std::endl;
   const std::string dataset_path = "../data/train/greek/";
 
-  const View view = GetView(dataset_path);
+  const CameraIntrinsicParameter param = GetCameraIntrinsicParameter(dataset_path);
 
   const std::vector<std::string> pose_paths = Glob(dataset_path + "pose/");
   const std::vector<std::string> image_paths = Glob(dataset_path + "rgb/");

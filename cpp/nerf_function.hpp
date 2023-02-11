@@ -33,6 +33,6 @@ std::pair<RGB, Weight> _rgb_and_weight(RadianceField func, const Vec2D<float>& o
 std::pair<torch::Tensor, torch::Tensor> VolumeRenderingWithRadianceField(
     torch::nn::Module func_c, torch::nn::Module func_f, const Vec2D<float>& o, const Vec2D<float>& d,
     const Vec2D<float>& t_n, const Vec2D<float>& t_f, int32_t N_c, int32_t N_f, const RGB& c_bg);
-std::pair<Vec2D<Position>, Vec3D<Position>> CameraParamsToRays(const View& view);
+std::pair<Vec2D<Position>, Vec3D<Position>> CameraParamsToRays(const CameraIntrinsicParameter& param);
 
 #endif

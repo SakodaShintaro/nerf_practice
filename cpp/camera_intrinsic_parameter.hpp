@@ -5,7 +5,7 @@
 
 #include "pose.hpp"
 
-struct View {
+struct CameraIntrinsicParameter {
   float f;
   float cx;
   float cy;
@@ -14,6 +14,6 @@ struct View {
   int32_t height;
 };
 
-View GetView(const std::string& dataset_path);
+CameraIntrinsicParameter GetCameraIntrinsicParameter(const std::string& dataset_path);
 
 #endif

@@ -1,8 +1,9 @@
 #include "camera_intrinsic_parameter.hpp"
+
 #include <fstream>
 #include <iostream>
 
-View GetView(const std::string& dataset_path) {
+CameraIntrinsicParameter GetCameraIntrinsicParameter(const std::string& dataset_path) {
   std::ifstream ifs_intrinsics(dataset_path + "intrinsics.txt");
 
   // 1行目
@@ -32,7 +33,7 @@ View GetView(const std::string& dataset_path) {
   constexpr int32_t width = 512;
   constexpr int32_t height = 512;
 
-  View result;
+  CameraIntrinsicParameter result;
   result.f = f * height / img_height;
   result.cx = cx * width / img_width;
   result.cy = cy * height / img_height;
