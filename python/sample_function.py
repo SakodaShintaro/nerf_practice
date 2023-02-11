@@ -120,7 +120,7 @@ def ray(o, d, t):
     return o[:, None] + t[..., None] * d[:, None]
 
 
-def _rgb_and_weight(func, o, d, t, N):
+def rgb_and_weight(func, o, d, t, N):
     batch_size = o.shape[0]
 
     x = ray(o, d, t)
@@ -144,54 +144,3 @@ def _rgb_and_weight(func, o, d, t, N):
     T = torch.exp(- torch.cumsum(mass[:, :-1], dim=1))
     w = T * alpha
     return rgb, w
-
-
-def volume_rendering_with_radiance_field(func_c, func_f, o, d, t_n, t_f,
-                                         N_c, N_f, c_bg):
-    """Rendering with Neural Radiance Field.
-
-    Args:
-        func_c: NN for coarse rendering.
-        func_f: NN for fine rendering.
-        o (ndarray, [batch_size, 3]): Start points of the ray.
-        d (ndarray, [batch_size, 3]): Directions of the ray.
-        t_n (float): Start point of split.
-        t_f (float): End point of split.
-        N_c (int): num of coarse sampling.
-        N_f (int): num of fine sampling.
-        c_bg (tuple, [3,]): Background color.
-
-    Returns:
-        C_c (tensor, [batch_size, 3]): Result of coarse rendering.
-        C_f (tensor, [batch_size, 3]): Result of fine rendering.
-
-    """
-    batch_size = o.shape[0]
-    device = o.device
-
-    partitions = split_ray(t_n, t_f, N_c, batch_size)
-
-    # background.
-    bg = torch.tensor(c_bg, device=device, dtype=torch.float32)
-    bg = bg.view(1, 3)
-
-    # coarse rendering:
-    _t_c = sample_coarse(partitions)
-    t_c = torch.tensor(_t_c)
-    t_c = t_c.to(device)
-
-    rgb_c, w_c = _rgb_and_weight(func_c, o, d, t_c, N_c)
-    C_c = torch.sum(w_c[..., None] * rgb_c, axis=1)
-    C_c += (1. - torch.sum(w_c, axis=1, keepdims=True)) * bg
-
-    # fine rendering.
-    _w_c = w_c.detach().cpu().numpy()
-    t_f = sample_fine(partitions, _w_c, _t_c, N_f)
-    t_f = torch.tensor(t_f)
-    t_f = t_f.to(device)
-
-    rgb_f, w_f = _rgb_and_weight(func_f, o, d, t_f, N_f + N_c)
-    C_f = torch.sum(w_f[..., None] * rgb_f, axis=1)
-    C_f += (1. - torch.sum(w_f, axis=1, keepdims=True)) * bg
-
-    return C_c, C_f

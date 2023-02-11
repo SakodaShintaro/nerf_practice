@@ -4,6 +4,7 @@ import numpy as np
 from PIL import Image
 from nerf_model import camera_params_to_rays
 from constants import DATASET_PATH, RESULT_DIR
+from tqdm import tqdm
 
 
 def get_view(dataset_path: str):
@@ -72,7 +73,7 @@ if __name__ == "__main__":
     d_list = []
     C_list = []
 
-    for data in dataset_raw:
+    for data in tqdm(dataset_raw):
         pose = data['pose']
         rgb = data['rgb']
 

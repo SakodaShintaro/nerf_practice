@@ -2,7 +2,7 @@ import numpy as np
 import torch
 import torch.nn as nn
 from radiance_field import RadianceField
-from sample_function import volume_rendering_with_radiance_field
+from sample_function import *
 
 
 def camera_params_to_rays(f, cx, cy, pose, width, height):
@@ -116,14 +116,47 @@ class NeRF(nn.Module):
         device = self.device()
         o = torch.tensor(o, device=device)
         d = torch.tensor(d, device=device)
+        C_c, C_f = self.volume_rendering_with_radiance_field(o, d)
+        return C_c, C_f
 
-        rf_c = self.rf_c
-        rf_f = self.rf_f
-        t_n = self.t_n
-        t_f = self.t_f
-        N_c = self.N_c
-        N_f = self.N_f
-        c_bg = self.c_bg
-        C_c, C_f = volume_rendering_with_radiance_field(
-            rf_c, rf_f, o, d, t_n, t_f, N_c=N_c, N_f=N_f, c_bg=c_bg)
+    def volume_rendering_with_radiance_field(self, o, d):
+        """Rendering with Neural Radiance Field.
+
+        Args:
+            o (ndarray, [batch_size, 3]): Start points of the ray.
+            d (ndarray, [batch_size, 3]): Directions of the ray.
+
+        Returns:
+            C_c (tensor, [batch_size, 3]): Result of coarse rendering.
+            C_f (tensor, [batch_size, 3]): Result of fine rendering.
+
+        """
+        batch_size = o.shape[0]
+        device = o.device
+
+        partitions = split_ray(self.t_n, self.t_f, self.N_c, batch_size)
+
+        # background.
+        bg = torch.tensor(self.c_bg, device=device, dtype=torch.float32)
+        bg = bg.view(1, 3)
+
+        # coarse rendering:
+        _t_c = sample_coarse(partitions)
+        t_c = torch.tensor(_t_c)
+        t_c = t_c.to(device)
+
+        rgb_c, w_c = rgb_and_weight(self.rf_c, o, d, t_c, self.N_c)
+        C_c = torch.sum(w_c[..., None] * rgb_c, axis=1)
+        C_c += (1. - torch.sum(w_c, axis=1, keepdims=True)) * bg
+
+        # fine rendering.
+        _w_c = w_c.detach().cpu().numpy()
+        t_f = sample_fine(partitions, _w_c, _t_c, self.N_f)
+        t_f = torch.tensor(t_f)
+        t_f = t_f.to(device)
+
+        rgb_f, w_f = rgb_and_weight(self.rf_f, o, d, t_f, self.N_f + self.N_c)
+        C_f = torch.sum(w_f[..., None] * rgb_f, axis=1)
+        C_f += (1. - torch.sum(w_f, axis=1, keepdims=True)) * bg
+
         return C_c, C_f
