@@ -1,8 +1,8 @@
 #ifndef POSE_HPP
 #define POSE_HPP
 
-#include <array>
+#include <Eigen/Dense>
 
-using Pose = std::array<float, 16>;
+using Pose = Eigen::Matrix4f;
 
 #endif

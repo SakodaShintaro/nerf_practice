@@ -4,7 +4,7 @@
 #include <array>
 #include <opencv2/opencv.hpp>
 
-using Pose = std::array<float, 16>;
+#include "pose.hpp"
 
 struct Data {
   Pose pose;

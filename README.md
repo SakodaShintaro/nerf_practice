@@ -34,3 +34,8 @@ OpenCVの導入
 ```bash
 sudo apt install libopencv-dev
 ```
+
+Eigenの導入
+```bash
+sudo apt install libeigen3-dev -y
+```
