@@ -7,13 +7,13 @@
 #include <vector>
 
 std::vector<std::string> Glob(const std::string& input_dir) {
-  glob_t globbuf;
+  glob_t buffer;
   std::vector<std::string> files;
-  glob((input_dir + "*").c_str(), 0, NULL, &globbuf);
-  for (int i = 0; i < globbuf.gl_pathc; i++) {
-    files.push_back(globbuf.gl_pathv[i]);
+  glob((input_dir + "*").c_str(), 0, NULL, &buffer);
+  for (size_t i = 0; i < buffer.gl_pathc; i++) {
+    files.push_back(buffer.gl_pathv[i]);
   }
-  globfree(&globbuf);
+  globfree(&buffer);
   return files;
 }
 
