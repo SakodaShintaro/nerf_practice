@@ -134,10 +134,10 @@ std::pair<RGB, Weight> _rgb_and_weight(RadianceField func, const Vec2D<float>& o
   // torch::Tensor mass = sigma[..., 0] * delta;
 }
 
-std::vector<Ray> GetRays(const CameraIntrinsicParameter& param, const Pose& pose) {
-  const Position center = pose.block(0, 3, 3, 1);
+std::vector<RayData> GetRays(const CameraIntrinsicParameter& param, const Data& data) {
+  const Position center = data.pose.block(0, 3, 3, 1);
 
-  std::vector<Ray> rays;
+  std::vector<RayData> rays;
   for (int32_t i = 0; i < param.height; i++) {
     for (int32_t j = 0; j < param.width; j++) {
       const float y = (i + 0.5f - param.cy) / param.f;
@@ -145,11 +145,11 @@ std::vector<Ray> GetRays(const CameraIntrinsicParameter& param, const Pose& pose
       const float z = 1.0f;
       Eigen::Vector4f vec;
       vec << x, y, z, 1.0f;
-      vec = pose * vec;
+      vec = data.pose * vec;
       Position d = vec.block(0, 0, 3, 1);
       d -= center;
       d.normalize();
-      rays.emplace_back(center, d);
+      rays.push_back({center, d, data.image.at<cv::Vec3b>(i, j)});
     }
   }
   return rays;
