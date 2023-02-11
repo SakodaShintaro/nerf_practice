@@ -8,7 +8,7 @@
 
 struct Data {
   Pose pose;
-  cv::Mat rgb;
+  cv::Mat image;
 };
 
 Pose ParsePose(const std::string& path);

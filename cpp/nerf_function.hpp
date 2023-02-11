@@ -3,14 +3,15 @@
 
 #include <torch/torch.h>
 
+#include <Eigen/Core>
 #include <array>
 #include <cstdint>
 #include <vector>
 
-#include "view.hpp"
 #include "neural_network.hpp"
+#include "view.hpp"
 
-using Position = std::array<float, 3>;
+using Position = Eigen::Vector3f;
 
 template <class T>
 using Vec2D = std::vector<std::vector<T>>;
