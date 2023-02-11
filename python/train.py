@@ -1,7 +1,7 @@
 import numpy as np
 import torch
+import torch.nn.functional as F
 from nerf_model import NeRF
-from nerf_loss import NeRFLoss
 from constants import RESULT_DIR
 import os
 import time
@@ -16,13 +16,11 @@ if __name__ == "__main__":
     PRINT_INTERVAL = 100
 
     nerf = NeRF(t_n=0., t_f=2.5, c_bg=(1, 1, 1))
-    loss_func = NeRFLoss(nerf)
+    nerf.to("cuda")
 
     optimizer = torch.optim.Adam(
-        loss_func.parameters(),
+        nerf.parameters(),
         lr=3e-4, betas=(0.9, 0.999), eps=1e-7)
-
-    loss_func.cuda('cuda:0')
 
     n_sample = dataset['o'].shape[0]
 
@@ -47,8 +45,10 @@ if __name__ == "__main__":
             o = dataset['o'][perm[i:i + BATCH_SIZE]]
             d = dataset['d'][perm[i:i + BATCH_SIZE]]
             C = dataset['C'][perm[i:i + BATCH_SIZE]]
+            C = torch.tensor(C, device=nerf.device())
 
-            loss = loss_func(o, d, C)
+            C_c, C_f = nerf.infer(o, d)
+            loss = F.mse_loss(C_c, C) + F.mse_loss(C_f, C)
             sum_loss += loss.item() * o.shape[0]
             sum_loss_print += loss.item()
 
@@ -65,7 +65,7 @@ if __name__ == "__main__":
                 print(print_str, end="")
                 sum_loss_print = 0
 
-            loss_func.zero_grad()
+            optimizer.zero_grad()
             loss.backward()
             optimizer.step()
             torch.save(nerf.state_dict(), f"{save_dir}/nerf_model.pt")
@@ -74,7 +74,6 @@ if __name__ == "__main__":
 
         # save state.
         torch.save(nerf.state_dict(), f"{save_dir}/nerf_model.pt")
-        torch.save(loss_func.state_dict(), f"{save_dir}/loss_func.pt")
         torch.save(optimizer.state_dict(), f"{save_dir}/optimizer.pt")
 
         if step >= MAX_STEP:

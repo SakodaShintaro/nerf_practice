@@ -1,7 +1,6 @@
 import numpy as np
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
 from radiance_field import RadianceField
 from sample_function import volume_rendering_with_radiance_field
 
@@ -102,9 +101,7 @@ class NeRF(nn.Module):
             for i in range(0, o.shape[0], self.N_SAMPLES):
                 o_i = o[i:i + self.N_SAMPLES]
                 d_i = d[i:i + self.N_SAMPLES]
-                C_c_i, C_f_i = volume_rendering_with_radiance_field(
-                    self.rf_c, self.rf_f, o_i, d_i, self.t_n, self.t_f,
-                    N_c=self.N_c, N_f=self.N_f, c_bg=self.c_bg)
+                C_c_i, C_f_i = self.infer(o_i, d_i)
                 _C_c.append(C_c_i.cpu().numpy())
                 _C_f.append(C_f_i.cpu().numpy())
 
@@ -113,4 +110,20 @@ class NeRF(nn.Module):
         C_c = np.clip(0., 1., C_c.reshape(height, width, 3))
         C_f = np.clip(0., 1., C_f.reshape(height, width, 3))
 
+        return C_c, C_f
+
+    def infer(self, o, d):
+        device = self.device()
+        o = torch.tensor(o, device=device)
+        d = torch.tensor(d, device=device)
+
+        rf_c = self.rf_c
+        rf_f = self.rf_f
+        t_n = self.t_n
+        t_f = self.t_f
+        N_c = self.N_c
+        N_f = self.N_f
+        c_bg = self.c_bg
+        C_c, C_f = volume_rendering_with_radiance_field(
+            rf_c, rf_f, o, d, t_n, t_f, N_c=N_c, N_f=N_f, c_bg=c_bg)
         return C_c, C_f
