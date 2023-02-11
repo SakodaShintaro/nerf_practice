@@ -14,4 +14,6 @@ struct View {
   int32_t height;
 };
 
+View GetView(const std::string& dataset_path);
+
 #endif
