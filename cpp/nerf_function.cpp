@@ -14,94 +14,96 @@ Partition SplitRay(float t_n, float t_f, int32_t N, int32_t batch_size) {
   return result;
 }
 
-Vec2D<float> SampleCoarse(const Partition& partition) {
+torch::Tensor SampleCoarse(const Partition& partition) {
   const int32_t batch_size = partition.size();
-  Vec2D<float> result(batch_size);
+  const int32_t M = partition.front().size();
+  std::vector<float> result(batch_size * (M - 1));
   std::mt19937_64 engine(std::random_device{}());
   for (int32_t i = 0; i < batch_size; i++) {
-    const int32_t M = partition[i].size();
-    result[i].resize(M - 1);
     for (int64_t j = 0; j < M - 1; j++) {
       std::uniform_real_distribution<float> dist(partition[i][j], partition[i][j + 1]);
-      result[i][j] = dist(engine);
+      result[i * (M - 1) + j] = dist(engine);
     }
   }
-  return result;
+  return torch::tensor(result).view({batch_size, M - 1});
 }
 
-Vec2D<float> _pcpdf(const Partition& partition, Vec2D<float> weights, int32_t N_s) {
-  const int32_t batch_size = weights.size();
-  const int32_t N_p = weights.front().size();
+Vec2D<float> _pcpdf(const Partition& partition, torch::Tensor weights, int32_t N_s) {
+  // const int32_t batch_size = weights.size(0);
+  // const int32_t N_p = weights.size(1);
 
-  // normalize weights
-  for (int32_t i = 0; i < batch_size; i++) {
-    float sum = 0;
-    for (int32_t j = 0; j < N_p; j++) {
-      constexpr float kEps = 1e-16;
-      weights[i][j] = std::max(weights[i][j], kEps);
-      sum += weights[i][j];
-    }
-    for (int32_t j = 0; j < N_p; j++) {
-      weights[i][j] /= sum;
-    }
-  }
+  // // normalize weights
+  // for (int32_t i = 0; i < batch_size; i++) {
+  //   float sum = 0;
+  //   for (int32_t j = 0; j < N_p; j++) {
+  //     constexpr float kEps = 1e-16;
+  //     weights[i][j] = std::max(weights[i][j], kEps);
+  //     sum += weights[i][j];
+  //   }
+  //   for (int32_t j = 0; j < N_p; j++) {
+  //     weights[i][j] /= sum;
+  //   }
+  // }
 
-  std::mt19937_64 engine(std::random_device{}());
-  std::uniform_real_distribution<float> dist(0.0f, 1.0f);
-  Vec2D<float> _sample(batch_size, std::vector<float>(N_p));
-  for (int32_t i = 0; i < batch_size; i++) {
-    for (int32_t j = 0; j < N_p; j++) {
-      _sample[i][j] = dist(engine);
-    }
-    sort(_sample[i].begin(), _sample[i].end());
-  }
+  // std::mt19937_64 engine(std::random_device{}());
+  // std::uniform_real_distribution<float> dist(0.0f, 1.0f);
+  // Vec2D<float> _sample(batch_size, std::vector<float>(N_p));
+  // for (int32_t i = 0; i < batch_size; i++) {
+  //   for (int32_t j = 0; j < N_p; j++) {
+  //     _sample[i][j] = dist(engine);
+  //   }
+  //   sort(_sample[i].begin(), _sample[i].end());
+  // }
 
-  // Slopes of a piecewise linear function
-  Vec2D<float> a(batch_size, std::vector<float>(N_p));
-  for (int32_t i = 0; i < batch_size; i++) {
-    for (int32_t j = 0; j < N_p; j++) {
-      a[i][j] = (partition[i][j + 1] - partition[i][j]) / weights[i][j];
-    }
-  }
+  // // Slopes of a piecewise linear function
+  // Vec2D<float> a(batch_size, std::vector<float>(N_p));
+  // for (int32_t i = 0; i < batch_size; i++) {
+  //   for (int32_t j = 0; j < N_p; j++) {
+  //     a[i][j] = (partition[i][j + 1] - partition[i][j]) / weights[i][j];
+  //   }
+  // }
 
-  // Intercepts of a piecewise linear function
-  Vec2D<float> cum_weights(batch_size, std::vector<float>(N_p + 1, 0));
-  for (int32_t i = 0; i < batch_size; i++) {
-    for (int32_t j = 0; j < N_p; j++) {
-      cum_weights[i][j + 1] = cum_weights[i][j] + weights[i][j];
-    }
-  }
+  // // Intercepts of a piecewise linear function
+  // Vec2D<float> cum_weights(batch_size, std::vector<float>(N_p + 1, 0));
+  // for (int32_t i = 0; i < batch_size; i++) {
+  //   for (int32_t j = 0; j < N_p; j++) {
+  //     cum_weights[i][j + 1] = cum_weights[i][j] + weights[i][j];
+  //   }
+  // }
 
-  Vec2D<float> b(batch_size, std::vector<float>(N_p));
-  for (int32_t i = 0; i < batch_size; i++) {
-    for (int32_t j = 0; j < N_p; j++) {
-      b[i][j] = partition[i][j] - a[i][j] * cum_weights[i][j];
-    }
-  }
+  // Vec2D<float> b(batch_size, std::vector<float>(N_p));
+  // for (int32_t i = 0; i < batch_size; i++) {
+  //   for (int32_t j = 0; j < N_p; j++) {
+  //     b[i][j] = partition[i][j] - a[i][j] * cum_weights[i][j];
+  //   }
+  // }
 
-  Vec2D<float> sample(batch_size, std::vector<float>(N_p, 0));
-  for (int32_t i = 0; i < batch_size; i++) {
-    for (int32_t j = 0; j < N_p; j++) {
-      const float min_j = cum_weights[i][j];
-      const float max_j = cum_weights[i][j + 1];
-      const bool mask = ((min_j <= _sample[i][j]) && (_sample[i][j] < max_j));
-      sample[i][j] += (a[i][j] * _sample[i][j] + b[i][j]) * mask;
-    }
-  }
+  // Vec2D<float> sample(batch_size, std::vector<float>(N_p, 0));
+  // for (int32_t i = 0; i < batch_size; i++) {
+  //   for (int32_t j = 0; j < N_p; j++) {
+  //     const float min_j = cum_weights[i][j];
+  //     const float max_j = cum_weights[i][j + 1];
+  //     const bool mask = ((min_j <= _sample[i][j]) && (_sample[i][j] < max_j));
+  //     sample[i][j] += (a[i][j] * _sample[i][j] + b[i][j]) * mask;
+  //   }
+  // }
 
-  return sample;
+  // return sample;
 }
 
-Vec2D<float> SampleFine(const Partition& partition, const Vec2D<float>& weights, const Vec2D<float>& t_c, int32_t N_f) {
-  Vec2D<float> t_f = _pcpdf(partition, weights, N_f);
-  const int32_t batch_size = t_c.size();
-  Vec2D<float> t(batch_size);
-  for (int32_t i = 0; i < batch_size; i++) {
-    t[i].insert(t[i].end(), t_c[i].begin(), t_c[i].end());
-    t[i].insert(t[i].end(), t_f[i].begin(), t_f[i].end());
-    sort(t[i].begin(), t[i].end());
-  }
-  return t;
+torch::Tensor SampleFine(const Partition& partition, torch::Tensor weights, torch::Tensor t_c, int32_t N_f) {
+  // Vec2D<float> t_f = _pcpdf(partition, weights, N_f);
+  // const int32_t batch_size = t_c.size(0);
+  // std::vector<float> result;
+  // for (int32_t i = 0; i < batch_size; i++) {
+  //   std::vector<float> tmp;
+  //   tmp.insert(tmp.end(), t_c[i].begin(), t_c[i].end());
+  //   tmp.insert(tmp.end(), t_f[i].begin(), t_f[i].end());
+  //   sort(tmp.begin(), tmp.end());
+  //   result.insert(result.end(), tmp.begin(), tmp.end());
+  // }
+  // return torch::tensor(result).view({batch_size, -1});
+  return torch::Tensor();
 }
 
 Vec3D<float> MakeRay(const Vec2D<float>& o, const Vec2D<float>& d, const Vec2D<float>& t) {
@@ -118,8 +120,8 @@ Vec3D<float> MakeRay(const Vec2D<float>& o, const Vec2D<float>& d, const Vec2D<f
   return result;
 }
 
-std::pair<RGB, Weight> _rgb_and_weight(RadianceField func, const Vec2D<float>& o, const Vec2D<float>& d,
-                                       const Vec2D<float>& t, int32_t N) {
+std::pair<torch::Tensor, torch::Tensor> _rgb_and_weight(RadianceField func, torch::Tensor o, torch::Tensor d,
+                                                        torch::Tensor t, int32_t N) {
   // const int32_t batch_size = o.size();
 
   // Vec3D<float> x = Ray(o, d, t);
