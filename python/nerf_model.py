@@ -29,21 +29,7 @@ class NeRF(nn.Module):
         device = self.device()
         o = torch.tensor(o, device=device)
         d = torch.tensor(d, device=device)
-        C_c, C_f = self.volume_rendering_with_radiance_field(o, d)
-        return C_c, C_f
 
-    def volume_rendering_with_radiance_field(self, o, d):
-        """Rendering with Neural Radiance Field.
-
-        Args:
-            o (ndarray, [batch_size, 3]): Start points of the ray.
-            d (ndarray, [batch_size, 3]): Directions of the ray.
-
-        Returns:
-            C_c (tensor, [batch_size, 3]): Result of coarse rendering.
-            C_f (tensor, [batch_size, 3]): Result of fine rendering.
-
-        """
         batch_size = o.shape[0]
         device = o.device
 
@@ -53,7 +39,7 @@ class NeRF(nn.Module):
         bg = torch.tensor(self.c_bg, device=device, dtype=torch.float32)
         bg = bg.view(1, 3)
 
-        # coarse rendering:
+        # coarse rendering.
         _t_c = sample_coarse(partitions)
         t_c = torch.tensor(_t_c)
         t_c = t_c.to(device)
