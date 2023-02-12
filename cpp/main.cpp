@@ -3,7 +3,6 @@
 
 #include "data.hpp"
 #include "nerf_function.hpp"
-#include "neural_network.hpp"
 #include "utils.hpp"
 
 int main() {

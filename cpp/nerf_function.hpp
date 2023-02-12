@@ -10,8 +10,8 @@
 
 #include "camera_intrinsic_parameter.hpp"
 #include "data.hpp"
-#include "neural_network.hpp"
 #include "ray_data.hpp"
+#include "radiance_field.hpp"
 
 template <class T>
 using Vec2D = std::vector<std::vector<T>>;

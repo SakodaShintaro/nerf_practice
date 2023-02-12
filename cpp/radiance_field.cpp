@@ -1,6 +1,6 @@
 #include "radiance_field.hpp"
 
-RadianceField::RadianceField(const int32_t _L_x, const int32_t _L_d) : L_x(_L_x), L_d(_L_d) {
+RadianceFieldImpl::RadianceFieldImpl(const int32_t _L_x, const int32_t _L_d) : L_x(_L_x), L_d(_L_d) {
   using namespace torch::nn;
   layer0_ = register_module("layer0_", Linear(6 * L_x, 256));
   layer1_ = register_module("layer1_", Linear(256, 256));
@@ -19,7 +19,7 @@ RadianceField::RadianceField(const int32_t _L_x, const int32_t _L_d) : L_x(_L_x)
   rgb_ = register_module("rgb_", Linear(128, 3));
 }
 
-std::pair<torch::Tensor, torch::Tensor> RadianceField::forward(torch::Tensor x, torch::Tensor d) {
+std::pair<torch::Tensor, torch::Tensor> RadianceFieldImpl::forward(torch::Tensor x, torch::Tensor d) {
   torch::Tensor e_x = gamma(x, L_x);
   torch::Tensor e_d = gamma(x, L_d);
 
@@ -44,7 +44,7 @@ std::pair<torch::Tensor, torch::Tensor> RadianceField::forward(torch::Tensor x, 
   return std::make_pair(rgb, sigma);
 }
 
-torch::Tensor RadianceField::gamma(torch::Tensor p, int32_t L) {
+torch::Tensor RadianceFieldImpl::gamma(torch::Tensor p, int32_t L) {
   p = torch::tanh(p);
   const int32_t batch_size = p.size(0);
   torch::Tensor i = torch::arange(0, L, torch::TensorOptions().device(p.device()).dtype(torch::kFloat32));

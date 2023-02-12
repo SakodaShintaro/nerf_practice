@@ -3,9 +3,9 @@
 
 #include <torch/torch.h>
 
-class RadianceField : public torch::nn::Module {
+class RadianceFieldImpl : public torch::nn::Module {
  public:
-  RadianceField(const int32_t _L_x = 10, const int32_t _L_d = 4);
+  RadianceFieldImpl(const int32_t _L_x = 10, const int32_t _L_d = 4);
 
   std::pair<torch::Tensor, torch::Tensor> forward(torch::Tensor x, torch::Tensor d);
 
@@ -30,5 +30,7 @@ class RadianceField : public torch::nn::Module {
   torch::nn::Linear layer12_{nullptr};
   torch::nn::Linear rgb_{nullptr};
 };
+
+TORCH_MODULE(RadianceField);
 
 #endif
