@@ -47,7 +47,7 @@ if __name__ == "__main__":
             C = dataset['C'][perm[i:i + BATCH_SIZE]]
             C = torch.tensor(C, device=nerf.device())
 
-            C_c, C_f = nerf.infer(o, d)
+            C_c, C_f = nerf.forward(o, d)
             loss = F.mse_loss(C_c, C) + F.mse_loss(C_f, C)
             sum_loss += loss.item() * o.shape[0]
             sum_loss_print += loss.item()

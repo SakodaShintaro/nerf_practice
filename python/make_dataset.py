@@ -2,12 +2,13 @@ import glob
 import os
 import numpy as np
 from PIL import Image
-from nerf_model import camera_params_to_rays
+from sample_function import camera_params_to_rays
 from constants import DATASET_PATH, RESULT_DIR
 from tqdm import tqdm
+from camera_intrinsic_parameter import CameraIntrinsicParameter
 
 
-def get_view(dataset_path: str):
+def get_camera_intrinsic_parameter(dataset_path: str) -> CameraIntrinsicParameter:
     def _line2floats(line):
         return map(float, line.strip().split())
 
@@ -27,10 +28,6 @@ def get_view(dataset_path: str):
         # image size
         img_height, img_width = _line2floats(file.readline())
 
-    print('focal length: {}'.format(f))
-    print('image center: ({}, {})'.format(cx, cy))
-    print('image size: ({}, {})'.format(img_width, img_height))
-
     # データセットの画像サイズ．
     width = 512
     height = 512
@@ -39,10 +36,7 @@ def get_view(dataset_path: str):
     cx = cx * width / img_width
     cy = cy * height / img_height
 
-    print('focal length: {}'.format(f))
-    print('image center: ({}, {})'.format(cx, cy))
-    print('image size: ({}, {})'.format(width, height))
-    return f, cx, cy, width, height
+    return CameraIntrinsicParameter(f, cx, cy, width, height)
 
 
 def get_dataset_raw(dataset_path: str):
@@ -66,7 +60,7 @@ def get_dataset_raw(dataset_path: str):
 
 
 if __name__ == "__main__":
-    f, cx, cy, width, height = get_view(DATASET_PATH)
+    param = get_camera_intrinsic_parameter(DATASET_PATH)
     dataset_raw = get_dataset_raw(DATASET_PATH)
 
     o_list = []
@@ -77,7 +71,7 @@ if __name__ == "__main__":
         pose = data['pose']
         rgb = data['rgb']
 
-        o, d = camera_params_to_rays(f, cx, cy, pose, width, height)
+        o, d = camera_params_to_rays(param, pose)
         C = (np.array(rgb, dtype=np.float32) / 255.)[:, :, :3]
 
         o = o.reshape(-1, 3)

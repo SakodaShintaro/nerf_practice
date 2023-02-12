@@ -1,6 +1,7 @@
 import numpy as np
 import torch
 import torch.nn.functional as F
+from camera_intrinsic_parameter import CameraIntrinsicParameter
 
 
 def split_ray(t_n, t_f, N, batch_size):
@@ -144,3 +145,32 @@ def rgb_and_weight(func, o, d, t, N):
     T = torch.exp(- torch.cumsum(mass[:, :-1], dim=1))
     w = T * alpha
     return rgb, w
+
+
+def camera_params_to_rays(param: CameraIntrinsicParameter, pose: np.ndarray):
+    """Make rays (o, d) from camera parameters.
+
+    Args:
+        param : CameraIntrinsicParameter.
+        pose (ndarray, [4, 4]): camera extrinsic matrix.
+
+    Returns:
+        o (ndarray, [height, width, 3]): The origin of the camera coordinate.
+        d (ndarray, [height, width, 3]): The direction of each ray.
+
+    """
+    _o = np.zeros((param.height, param.width, 4), dtype=np.float32)
+    _o[:, :, 3] = 1
+
+    v, u = np.mgrid[:param.height, :param.width].astype(np.float32)
+    _x = (u - param.cx) / param.f
+    _y = (v - param.cy) / param.f
+    _z = np.ones_like(_x)
+    _w = np.ones_like(_x)
+    _d = np.stack([_x, _y, _z, _w], axis=2)
+
+    o = (pose @ _o[..., None])[..., :3, 0]
+    _d = (pose @ _d[..., None])[..., :3, 0]
+    d = _d - o
+    d /= np.linalg.norm(d, axis=2, keepdims=True)
+    return o, d

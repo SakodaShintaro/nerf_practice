@@ -1,46 +1,30 @@
 import numpy as np
 from PIL import Image
-from make_dataset import get_view, get_dataset_raw
+from make_dataset import get_camera_intrinsic_parameter, get_dataset_raw
 from nerf_model import NeRF
 import torch
 import os
 from constants import DATASET_PATH, RESULT_DIR
 from tqdm import tqdm
+from sample_function import camera_params_to_rays
 
-if __name__=="__main__":
+
+if __name__ == "__main__":
     print(DATASET_PATH)
-    f, cx, cy, width, height = get_view(DATASET_PATH)
+    param = get_camera_intrinsic_parameter(DATASET_PATH)
     dataset_raw = get_dataset_raw(DATASET_PATH)
 
-    ind = 200
-    pose = dataset_raw[ind]['pose']
-    rgb = dataset_raw[ind]['rgb']
-
     # 512 * 512 はやや時間がかかるので半分のサイズでレンダリング
-    view = {
-        'f': f / 2,
-        'cx': cy / 2,
-        'cy': cy / 2,
-        'height': height // 2,
-        'width': width // 2,
-        'pose': pose
-    }
-
-    # original size.
-    # view = {
-    #     'f': f,
-    #     'cx': cy,
-    #     'cy': cy,
-    #     'height': height,
-    #     'width': width,
-    #     'pose': pose
-    # }
+    param.f /= 2
+    param.cx /= 2
+    param.cy /= 2
+    param.width //= 2
+    param.height //= 2
 
     nerf = NeRF(t_n=0., t_f=2.5, c_bg=(1, 1, 1))
     nerf.load_state_dict(torch.load(f"{RESULT_DIR}/train/nerf_model.pt"))
     nerf.to("cuda")
     nerf.eval()
-    C_c, C_f = nerf(view)
 
     images = []
 
@@ -53,9 +37,9 @@ if __name__=="__main__":
 
         # y軸回り
         R = np.array([[c, 0, -s, 0],
-                    [0, 1, 0, 0],
-                    [s, 0, c, 0],
-                    [0, 0, 0, 1]], dtype=np.float32)
+                      [0, 1, 0, 0],
+                      [s, 0, c, 0],
+                      [0, 0, 0, 1]], dtype=np.float32)
 
     #     # z軸回り
     #     R = np.array([[c, -s, 0, 0],
@@ -63,10 +47,24 @@ if __name__=="__main__":
     #                   [0,  0, 1, 0],
     #                   [0,  0, 0, 1]], dtype=np.float32)
 
-        _view = view.copy()
-        _view['pose'] = R @ view['pose']
+        o, d = camera_params_to_rays(param, R @ dataset_raw[200]["pose"])
+        o = o.reshape(-1, 3)
+        d = d.reshape(-1, 3)
 
-        C_c, C_f = nerf(_view)
+        _C_c = []
+        _C_f = []
+        with torch.no_grad():
+            for i in range(0, o.shape[0], nerf.BATCH_SIZE):
+                o_i = o[i:i + nerf.BATCH_SIZE]
+                d_i = d[i:i + nerf.BATCH_SIZE]
+                C_c_i, C_f_i = nerf.forward(o_i, d_i)
+                _C_c.append(C_c_i.cpu().numpy())
+                _C_f.append(C_f_i.cpu().numpy())
+
+        C_c = np.concatenate(_C_c, axis=0)
+        C_f = np.concatenate(_C_f, axis=0)
+        C_c = np.clip(0., 1., C_c.reshape(param.height, param.width, 3))
+        C_f = np.clip(0., 1., C_f.reshape(param.height, param.width, 3))
 
         image = Image.fromarray((C_f * 255.).astype(np.uint8))
         image.save(f"{save_dir}/{ind:08d}.png")
@@ -74,4 +72,4 @@ if __name__=="__main__":
 
     # GIF版
     images[0].save(f'{save_dir}/greek.gif', save_all=True, append_images=images[1:],
-                duration=125, loop=0)
+                   duration=125, loop=0)
