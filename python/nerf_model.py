@@ -43,8 +43,7 @@ class NeRF(nn.Module):
     N_c = 64
     N_f = 128
 
-    # batchsize
-    N_SAMPLES = 2048
+    BATCH_SIZE = 2048
 
     def __init__(self, t_n=0., t_f=2.5, L_x=10, L_d=4, c_bg=(1, 1, 1)):
         self.t_n = t_n
@@ -59,12 +58,12 @@ class NeRF(nn.Module):
         return next(self.parameters()).device
 
     def forward(self, view):
-        """Render Image with view paramters.
+        """Render Image with view parameters.
 
         Args:
             view (dict): View (camera) parameters.
                 view = {
-                    # intrinsic paramters.
+                    # intrinsic parameters.
                     f: <float, the focal length.>,
                     cx : <float, the center of the image (x).>,
                     cy : <float, the center of the image (y).>,
@@ -98,9 +97,9 @@ class NeRF(nn.Module):
         _C_c = []
         _C_f = []
         with torch.no_grad():
-            for i in range(0, o.shape[0], self.N_SAMPLES):
-                o_i = o[i:i + self.N_SAMPLES]
-                d_i = d[i:i + self.N_SAMPLES]
+            for i in range(0, o.shape[0], self.BATCH_SIZE):
+                o_i = o[i:i + self.BATCH_SIZE]
+                d_i = d[i:i + self.BATCH_SIZE]
                 C_c_i, C_f_i = self.infer(o_i, d_i)
                 _C_c.append(C_c_i.cpu().numpy())
                 _C_f.append(C_f_i.cpu().numpy())
