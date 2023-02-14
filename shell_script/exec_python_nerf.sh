@@ -12,6 +12,9 @@ cd ${SCRIPT_DIR}/../python/
 # クリアしないとpythonでpytorchが上手く動かない
 export LD_LIBRARY_PATH=
 
+# 削除
+rm -rf result_dir/
+
 # データセット準備
 python make_dataset.py
 
