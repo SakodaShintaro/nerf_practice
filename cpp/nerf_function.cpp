@@ -15,20 +15,15 @@ torch::Tensor SplitRay(float t_n, float t_f, int32_t N, int32_t batch_size) {
 }
 
 torch::Tensor SampleCoarse(torch::Tensor partition) {
-  const int32_t batch_size = partition.size(0);
-  const int32_t M = partition.size(1);
-  std::vector<float> result(batch_size * (M - 1));
-  std::mt19937_64 engine(std::random_device{}());
-  for (int32_t i = 0; i < batch_size; i++) {
-    for (int64_t j = 0; j < M - 1; j++) {
-      std::uniform_real_distribution<float> dist(partition[i][j].item<float>(), partition[i][j + 1].item<float>());
-      result[i * (M - 1) + j] = dist(engine);
-    }
-  }
-  return torch::tensor(result).view({batch_size, M - 1});
+  using namespace torch::indexing;
+  torch::Tensor l = partition.index({Slice(None, None), Slice(None, -1)});
+  torch::Tensor r = partition.index({Slice(None, None), Slice(1, None)});
+  torch::Tensor t = (r - l) * torch::rand_like(l) + l;
+  return t;
 }
 
 torch::Tensor _pcpdf(torch::Tensor partition, torch::Tensor weights, int32_t N_s) {
+  using namespace torch::indexing;
   const int32_t batch_size = weights.size(0);
   const int32_t N_p = weights.size(1);
 
@@ -36,82 +31,37 @@ torch::Tensor _pcpdf(torch::Tensor partition, torch::Tensor weights, int32_t N_s
   weights = torch::maximum(weights, t);
   weights /= weights.sum(1, true);
 
-  torch::Tensor _sample = torch::rand_like(weights);
+  torch::Tensor _sample = torch::rand({batch_size, N_s}).to(weights.device());
   auto [s, i] = torch::sort(_sample, 1);
   _sample = s;
 
-  // // normalize weights
-  // for (int32_t i = 0; i < batch_size; i++) {
-  //   float sum = 0;
-  //   for (int32_t j = 0; j < N_p; j++) {
-  //     constexpr float kEps = 1e-16;
-  //     weights[i][j] = std::max(weights[i][j], kEps);
-  //     sum += weights[i][j];
-  //   }
-  //   for (int32_t j = 0; j < N_p; j++) {
-  //     weights[i][j] /= sum;
-  //   }
-  // }
+  torch::Tensor l = partition.index({Slice(None, None), Slice(None, -1)});
+  torch::Tensor r = partition.index({Slice(None, None), Slice(1, None)});
+  torch::Tensor a = (r - l) / weights;
 
-  // std::mt19937_64 engine(std::random_device{}());
-  // std::uniform_real_distribution<float> dist(0.0f, 1.0f);
-  // Vec2D<float> _sample(batch_size, std::vector<float>(N_p));
-  // for (int32_t i = 0; i < batch_size; i++) {
-  //   for (int32_t j = 0; j < N_p; j++) {
-  //     _sample[i][j] = dist(engine);
-  //   }
-  //   sort(_sample[i].begin(), _sample[i].end());
-  // }
+  torch::Tensor cum_weights = torch::cumsum(weights, 1);
+  cum_weights = torch::pad(cum_weights, {1, 0, 0, 0});
 
-  // // Slopes of a piecewise linear function
-  // Vec2D<float> a(batch_size, std::vector<float>(N_p));
-  // for (int32_t i = 0; i < batch_size; i++) {
-  //   for (int32_t j = 0; j < N_p; j++) {
-  //     a[i][j] = (partition[i][j + 1] - partition[i][j]) / weights[i][j];
-  //   }
-  // }
+  torch::Tensor b = l - a * cum_weights;
 
-  // // Intercepts of a piecewise linear function
-  // Vec2D<float> cum_weights(batch_size, std::vector<float>(N_p + 1, 0));
-  // for (int32_t i = 0; i < batch_size; i++) {
-  //   for (int32_t j = 0; j < N_p; j++) {
-  //     cum_weights[i][j + 1] = cum_weights[i][j] + weights[i][j];
-  //   }
-  // }
+  torch::Tensor sample = torch::zeros_like(_sample);
 
-  // Vec2D<float> b(batch_size, std::vector<float>(N_p));
-  // for (int32_t i = 0; i < batch_size; i++) {
-  //   for (int32_t j = 0; j < N_p; j++) {
-  //     b[i][j] = partition[i][j] - a[i][j] * cum_weights[i][j];
-  //   }
-  // }
-
-  // Vec2D<float> sample(batch_size, std::vector<float>(N_p, 0));
-  // for (int32_t i = 0; i < batch_size; i++) {
-  //   for (int32_t j = 0; j < N_p; j++) {
-  //     const float min_j = cum_weights[i][j];
-  //     const float max_j = cum_weights[i][j + 1];
-  //     const bool mask = ((min_j <= _sample[i][j]) && (_sample[i][j] < max_j));
-  //     sample[i][j] += (a[i][j] * _sample[i][j] + b[i][j]) * mask;
-  //   }
-  // }
-
-  // return sample;
+  for (int32_t j = 0; j < N_p; j++) {
+    torch::Tensor min_j = cum_weights.index({Slice(None, None), Slice(j, j + 1)});
+    torch::Tensor max_j = cum_weights.index({Slice(None, None), Slice(j + 1, j + 2)});
+    torch::Tensor a_j = a.index({Slice(None, None), Slice(j, j + 1)});
+    torch::Tensor b_j = b.index({Slice(None, None), Slice(j, j + 1)});
+    torch::Tensor mask = ((min_j <= sample) & (_sample < max_j)).to(torch::kFloat32);
+    sample += (a_j * _sample + b_j) * mask;
+  }
+  return sample;
 }
 
 torch::Tensor SampleFine(torch::Tensor partition, torch::Tensor weights, torch::Tensor t_c, int32_t N_f) {
-  // Vec2D<float> t_f = _pcpdf(partition, weights, N_f);
-  // const int32_t batch_size = t_c.size(0);
-  // std::vector<float> result;
-  // for (int32_t i = 0; i < batch_size; i++) {
-  //   std::vector<float> tmp;
-  //   tmp.insert(tmp.end(), t_c[i].begin(), t_c[i].end());
-  //   tmp.insert(tmp.end(), t_f[i].begin(), t_f[i].end());
-  //   sort(tmp.begin(), tmp.end());
-  //   result.insert(result.end(), tmp.begin(), tmp.end());
-  // }
-  // return torch::tensor(result).view({batch_size, -1});
-  return torch::Tensor();
+  torch::Tensor t_f = _pcpdf(partition, weights, N_f);
+  torch::Tensor t = torch::concatenate({t_c, t_f}, 1);
+  auto [tt, _] = torch::sort(t, 1);
+  return tt;
 }
 
 torch::Tensor MakeRay(torch::Tensor o, torch::Tensor d, torch::Tensor t) {
@@ -122,18 +72,35 @@ torch::Tensor MakeRay(torch::Tensor o, torch::Tensor d, torch::Tensor t) {
 
 std::pair<torch::Tensor, torch::Tensor> _rgb_and_weight(RadianceField func, torch::Tensor o, torch::Tensor d,
                                                         torch::Tensor t, int32_t N) {
-  // const int32_t batch_size = o.size();
+  using namespace torch::indexing;
+  const int32_t batch_size = o.size(1);
 
-  // Vec3D<float> x = Ray(o, d, t);
-  // torch::Tensor x_tensor = torch::tensor(x);
-  // torch::Tensor d_tensor = torch::tensor(d);
-  // auto [rgb, sigma] = func.forward(x_tensor, d_tensor);
+  torch::Tensor x = MakeRay(o, d, t);
+  x = x.view({batch_size, N, -1});
 
-  // rgb = rgb.view({batch_size, N, -1});
-  // sigma = sigma.view({batch_size, N, -1});
+  d = d.unsqueeze(-1);
+  d = d.repeat({1, N, 1});
 
-  // torch::Tensor delta = torch::pad(t[:, 1:] - t[:, :-1], (0, 1), mode = "constanta", value = 1e8);
-  // torch::Tensor mass = sigma[..., 0] * delta;
+  x = x.view({batch_size * N, -1});
+  d = d.view({batch_size * N, -1});
+
+  auto [rgb, sigma] = func(x, d);
+
+  rgb = rgb.view({batch_size, N, -1});
+  sigma = sigma.view({batch_size, N, -1});
+
+  torch::Tensor tl = t.index({Slice(None, None), Slice(None, -1)});
+  torch::Tensor tr = t.index({Slice(None, None), Slice(1, None)});
+  torch::Tensor delta = torch::pad(tr - tl, {0, 1}, "constant", 1e8);
+  torch::Tensor mass = sigma.index({"...", 0});
+  mass = torch::pad(mass, {1, 0});
+
+  torch::Tensor mass_l = mass.index({Slice(None, None), Slice(None, -1)});
+  torch::Tensor mass_r = mass.index({Slice(None, None), Slice(1, None)});
+  torch::Tensor alpha = 1 - torch::exp(-mass_l);
+  torch::Tensor T = torch::exp(-torch::cumsum(mass_r, 1));
+  torch::Tensor w = T * alpha;
+  return std::make_pair(rgb, w);
 }
 
 std::vector<RayData> GetRays(const CameraIntrinsicParameter& param, const Data& data) {
