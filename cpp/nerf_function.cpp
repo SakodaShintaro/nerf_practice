@@ -2,7 +2,7 @@
 
 #include <random>
 
-Partition SplitRay(float t_n, float t_f, int32_t N, int32_t batch_size) {
+torch::Tensor SplitRay(float t_n, float t_f, int32_t N, int32_t batch_size) {
   const float width = t_f - t_n;
   const float unit_width = width / N;
   std::vector<float> partition;
@@ -10,25 +10,25 @@ Partition SplitRay(float t_n, float t_f, int32_t N, int32_t batch_size) {
   for (int32_t i = 0; i < N; i++) {
     partition.push_back(t_n + unit_width * (i + 1));
   }
-  Partition result(batch_size, partition);
+  torch::Tensor result = torch::tensor(partition);
   return result;
 }
 
-torch::Tensor SampleCoarse(const Partition& partition) {
-  const int32_t batch_size = partition.size();
-  const int32_t M = partition.front().size();
+torch::Tensor SampleCoarse(torch::Tensor partition) {
+  const int32_t batch_size = partition.size(0);
+  const int32_t M = partition.size(1);
   std::vector<float> result(batch_size * (M - 1));
   std::mt19937_64 engine(std::random_device{}());
   for (int32_t i = 0; i < batch_size; i++) {
     for (int64_t j = 0; j < M - 1; j++) {
-      std::uniform_real_distribution<float> dist(partition[i][j], partition[i][j + 1]);
+      std::uniform_real_distribution<float> dist(partition[i][j].item<float>(), partition[i][j + 1].item<float>());
       result[i * (M - 1) + j] = dist(engine);
     }
   }
   return torch::tensor(result).view({batch_size, M - 1});
 }
 
-torch::Tensor _pcpdf(const Partition& partition, torch::Tensor weights, int32_t N_s) {
+torch::Tensor _pcpdf(torch::Tensor partition, torch::Tensor weights, int32_t N_s) {
   const int32_t batch_size = weights.size(0);
   const int32_t N_p = weights.size(1);
 
@@ -99,7 +99,7 @@ torch::Tensor _pcpdf(const Partition& partition, torch::Tensor weights, int32_t 
   // return sample;
 }
 
-torch::Tensor SampleFine(const Partition& partition, torch::Tensor weights, torch::Tensor t_c, int32_t N_f) {
+torch::Tensor SampleFine(torch::Tensor partition, torch::Tensor weights, torch::Tensor t_c, int32_t N_f) {
   // Vec2D<float> t_f = _pcpdf(partition, weights, N_f);
   // const int32_t batch_size = t_c.size(0);
   // std::vector<float> result;
