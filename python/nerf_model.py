@@ -34,6 +34,8 @@ class NeRF(nn.Module):
         device = o.device
 
         partitions = split_ray(self.t_n, self.t_f, self.N_c, batch_size)
+        partitions = partitions.to(device)
+        partitions = partitions.detach()
 
         # background.
         bg = torch.tensor(self.c_bg, device=device, dtype=torch.float32)
@@ -41,15 +43,14 @@ class NeRF(nn.Module):
 
         # coarse rendering.
         _t_c = sample_coarse(partitions)
-        t_c = torch.tensor(_t_c)
-        t_c = t_c.to(device)
+        t_c = _t_c.to(device)
 
         rgb_c, w_c = rgb_and_weight(self.rf_c, o, d, t_c, self.N_c)
         C_c = torch.sum(w_c[..., None] * rgb_c, axis=1)
         C_c += (1. - torch.sum(w_c, axis=1, keepdims=True)) * bg
 
         # fine rendering.
-        _w_c = w_c.detach().cpu().numpy()
+        _w_c = torch.Tensor(w_c.detach().cpu().numpy()).to(device)
         t_f = sample_fine(partitions, _w_c, _t_c, self.N_f)
         t_f = t_f.to(device)
 
