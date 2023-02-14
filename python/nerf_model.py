@@ -50,7 +50,7 @@ class NeRF(nn.Module):
         C_c += (1. - torch.sum(w_c, axis=1, keepdims=True)) * bg
 
         # fine rendering.
-        _w_c = torch.Tensor(w_c.detach().cpu().numpy()).to(device)
+        _w_c = w_c.clone()
         t_f = sample_fine(partitions, _w_c, _t_c, self.N_f)
         t_f = t_f.to(device)
 
