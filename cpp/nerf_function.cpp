@@ -28,9 +28,17 @@ torch::Tensor SampleCoarse(const Partition& partition) {
   return torch::tensor(result).view({batch_size, M - 1});
 }
 
-Vec2D<float> _pcpdf(const Partition& partition, torch::Tensor weights, int32_t N_s) {
-  // const int32_t batch_size = weights.size(0);
-  // const int32_t N_p = weights.size(1);
+torch::Tensor _pcpdf(const Partition& partition, torch::Tensor weights, int32_t N_s) {
+  const int32_t batch_size = weights.size(0);
+  const int32_t N_p = weights.size(1);
+
+  const torch::Tensor t = torch::tensor(1e-16f);
+  weights = torch::maximum(weights, t);
+  weights /= weights.sum(1, true);
+
+  torch::Tensor _sample = torch::rand_like(weights);
+  auto [s, i] = torch::sort(_sample, 1);
+  _sample = s;
 
   // // normalize weights
   // for (int32_t i = 0; i < batch_size; i++) {
@@ -106,18 +114,10 @@ torch::Tensor SampleFine(const Partition& partition, torch::Tensor weights, torc
   return torch::Tensor();
 }
 
-Vec3D<float> MakeRay(const Vec2D<float>& o, const Vec2D<float>& d, const Vec2D<float>& t) {
-  const int32_t batch_size = o.size();
-  const int32_t N = t.front().size();
-  Vec3D<float> result(batch_size, Vec2D<float>(N, std::vector<float>(3)));
-  for (int32_t i = 0; i < batch_size; i++) {
-    for (int32_t j = 0; j < N; j++) {
-      for (int32_t k = 0; k < 3; k++) {
-        result[i][j][k] = t[i][j] * d[i][k] + o[i][k];
-      }
-    }
-  }
-  return result;
+torch::Tensor MakeRay(torch::Tensor o, torch::Tensor d, torch::Tensor t) {
+  const int32_t batch_size = o.size(0);
+  const int32_t N = t.size(1);
+  return o + t * d;
 }
 
 std::pair<torch::Tensor, torch::Tensor> _rgb_and_weight(RadianceField func, torch::Tensor o, torch::Tensor d,
