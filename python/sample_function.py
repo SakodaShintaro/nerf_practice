@@ -102,7 +102,8 @@ def sample_fine(partitions, weights, t_c, N_f):
     """
     t_f = _pcpdf(partitions, weights, N_f)
     t = np.concatenate([t_c, t_f], axis=1)
-    t = np.sort(t, axis=1)
+    t = torch.tensor(t)
+    t, _ = torch.sort(t, dim=1)
     return t
 
 

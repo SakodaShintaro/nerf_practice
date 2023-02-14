@@ -51,7 +51,6 @@ class NeRF(nn.Module):
         # fine rendering.
         _w_c = w_c.detach().cpu().numpy()
         t_f = sample_fine(partitions, _w_c, _t_c, self.N_f)
-        t_f = torch.tensor(t_f)
         t_f = t_f.to(device)
 
         rgb_f, w_f = rgb_and_weight(self.rf_f, o, d, t_f, self.N_f + self.N_c)
