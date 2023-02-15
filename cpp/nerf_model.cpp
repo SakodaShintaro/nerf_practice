@@ -2,15 +2,16 @@
 
 #include "nerf_function.hpp"
 
-NeRF::NeRF(float _t_n, float _t_f, int32_t _L_x, int32_t _L_d, cv::Vec3b _c_bg) : t_n(_t_n), t_f(_t_f), c_bg(_c_bg) {
+NeRFImpl::NeRFImpl(float _t_n, float _t_f, int32_t _L_x, int32_t _L_d, cv::Vec3b _c_bg)
+    : t_n(_t_n), t_f(_t_f), c_bg(_c_bg) {
   using namespace torch::nn;
   rf_c = register_module("rf_c", RadianceField(_L_x, _L_d));
   rf_f = register_module("rf_f", RadianceField(_L_x, _L_d));
 }
 
-torch::Device NeRF::device() { return rf_c->parameters().front().device(); }
+torch::Device NeRFImpl::device() { return rf_c->parameters().front().device(); }
 
-std::pair<torch::Tensor, torch::Tensor> NeRF::forward(torch::Tensor o, torch::Tensor d) {
+std::pair<torch::Tensor, torch::Tensor> NeRFImpl::forward(torch::Tensor o, torch::Tensor d) {
   const torch::Device dev = device();
   o = o.to(dev);
   d = d.to(dev);

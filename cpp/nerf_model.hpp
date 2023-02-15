@@ -6,9 +6,10 @@
 #include "camera_intrinsic_parameter.hpp"
 #include "radiance_field.hpp"
 
-class NeRF : public torch::nn::Module {
+class NeRFImpl : public torch::nn::Module {
  public:
-  NeRF(float _t_n = 0.0f, float _t_f = 2.5f, int32_t _L_x = 10, int32_t _L_d = 4, cv::Vec3b _c_bg = (255, 255, 255));
+  NeRFImpl(float _t_n = 0.0f, float _t_f = 2.5f, int32_t _L_x = 10, int32_t _L_d = 4,
+           cv::Vec3b _c_bg = (255, 255, 255));
   torch::Device device();
   std::pair<torch::Tensor, torch::Tensor> forward(torch::Tensor o, torch::Tensor d);
 
@@ -22,5 +23,7 @@ class NeRF : public torch::nn::Module {
   RadianceField rf_c{nullptr};
   RadianceField rf_f{nullptr};
 };
+
+TORCH_MODULE(NeRF);
 
 #endif
