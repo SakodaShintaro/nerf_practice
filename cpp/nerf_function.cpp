@@ -11,6 +11,8 @@ torch::Tensor SplitRay(float t_n, float t_f, int32_t N, int32_t batch_size) {
     partition.push_back(t_n + unit_width * (i + 1));
   }
   torch::Tensor result = torch::tensor(partition);
+  result = result.view({1, N + 1});
+  result = result.repeat({batch_size, 1});
   return result;
 }
 
@@ -42,7 +44,7 @@ torch::Tensor _pcpdf(torch::Tensor partition, torch::Tensor weights, int32_t N_s
   torch::Tensor cum_weights = torch::cumsum(weights, 1);
   cum_weights = torch::pad(cum_weights, {1, 0, 0, 0});
 
-  torch::Tensor b = l - a * cum_weights;
+  torch::Tensor b = l - a * cum_weights.index({Slice(None, None), Slice(None, -1)});
 
   torch::Tensor sample = torch::zeros_like(_sample);
 
@@ -67,13 +69,16 @@ torch::Tensor SampleFine(torch::Tensor partition, torch::Tensor weights, torch::
 torch::Tensor MakeRay(torch::Tensor o, torch::Tensor d, torch::Tensor t) {
   const int32_t batch_size = o.size(0);
   const int32_t N = t.size(1);
+  o = o.view({batch_size, 1, 3});
+  d = d.view({batch_size, 1, 3});
+  t = t.view({batch_size, N, 1});
   return o + t * d;
 }
 
 std::pair<torch::Tensor, torch::Tensor> _rgb_and_weight(RadianceField func, torch::Tensor o, torch::Tensor d,
                                                         torch::Tensor t, int32_t N) {
   using namespace torch::indexing;
-  const int32_t batch_size = o.size(1);
+  const int32_t batch_size = o.size(0);
 
   torch::Tensor x = MakeRay(o, d, t);
   x = x.view({batch_size, N, -1});
