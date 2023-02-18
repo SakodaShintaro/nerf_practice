@@ -5,14 +5,19 @@ from nerf_model import NeRF
 from constants import RESULT_DIR
 import os
 import time
+import argparse
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--max_step", type=int, default=1e9)
+    args = parser.parse_args()
+
     _dataset = np.load(f'{RESULT_DIR}/dataset.npz')
     dataset = {'o': _dataset['o'], 'd': _dataset['d'], 'C': _dataset['C']}
 
     N_EPOCH = 1
     BATCH_SIZE = 2048
-    MAX_STEP = 1000
+    MAX_STEP = args.max_step
     PRINT_INTERVAL = 100
 
     nerf = NeRF(t_n=0., t_f=2.5, c_bg=(1, 1, 1))

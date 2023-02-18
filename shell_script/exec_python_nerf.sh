@@ -19,7 +19,7 @@ rm -rf result_dir/
 python make_dataset.py
 
 # 学習
-python train.py
+python train.py --max_step=1000
 
 # 推論
 python infer.py
