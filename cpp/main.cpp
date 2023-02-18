@@ -86,6 +86,7 @@ int main() {
       torch::Tensor C = torch::tensor(C_vec).view({-1, 3});
       auto [C_c, C_f] = nerf->forward(o, d);
       C = C.to(nerf->device());
+      C /= 255;
       torch::Tensor loss = torch::nn::functional::mse_loss(C_c, C) + torch::nn::functional::mse_loss(C_f, C);
       sum_loss += loss.item<float>() * o.size(0);
       sum_loss_print += loss.item<float>() * o.size(0);
@@ -101,6 +102,8 @@ int main() {
         ss << std::setw(2) << elapsed_min << ":";
         ss << std::setw(2) << elapsed_sec % 60 << "\t";
         const float epoch_rate = 100.0f * (i + kBatchSize) / n_sample;
+        ss << e << "\t";
+        ss << step << "\t";
         ss << epoch_rate << "\t";
         ss << sum_loss_print << "\t";
         ofs << ss.str() << std::endl;
