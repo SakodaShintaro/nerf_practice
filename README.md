@@ -32,7 +32,7 @@ libtorchの導入
 
 OpenCVの導入
 ```bash
-sudo apt install libopencv-dev
+sudo apt install libopencv-dev -y
 ```
 
 Eigenの導入
