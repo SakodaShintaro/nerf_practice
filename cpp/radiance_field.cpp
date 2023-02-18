@@ -50,7 +50,7 @@ torch::Tensor RadianceFieldImpl::gamma(torch::Tensor p, int32_t L) {
   torch::Tensor i = torch::arange(0, L, torch::TensorOptions().device(p.device()).dtype(torch::kFloat32));
   i = i.view({1, 1, -1});
   p = p.view({batch_size, -1, 1});
-  torch::Tensor a = (2.0 * i) * M_PI * p;
+  torch::Tensor a = torch::pow(2.0, i) * M_PI * p;
   torch::Tensor s = torch::sin(a);
   torch::Tensor c = torch::cos(a);
   torch::Tensor e = torch::cat({s, c}, 2).view({batch_size, -1});
