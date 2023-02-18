@@ -2,7 +2,7 @@ import glob
 import os
 import numpy as np
 from PIL import Image
-from sample_function import camera_params_to_rays
+from nerf_function import camera_params_to_rays
 from constants import DATASET_PATH, RESULT_DIR
 from tqdm import tqdm
 from camera_intrinsic_parameter import CameraIntrinsicParameter

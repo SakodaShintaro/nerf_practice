@@ -6,7 +6,7 @@ import torch
 import os
 from constants import DATASET_PATH, RESULT_DIR
 from tqdm import tqdm
-from sample_function import camera_params_to_rays
+from nerf_function import camera_params_to_rays
 
 
 if __name__ == "__main__":

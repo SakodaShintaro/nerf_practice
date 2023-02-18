@@ -1,9 +1,8 @@
-from sample_function import camera_params_to_rays
 from make_dataset import get_camera_intrinsic_parameter, get_dataset_raw
 from constants import DATASET_PATH
 from nerf_model import NeRF
 import torch
-from sample_function import split_ray, sample_coarse, rgb_and_weight, sample_fine
+from nerf_function import camera_params_to_rays, split_ray, sample_coarse, rgb_and_weight, sample_fine
 
 
 def test():

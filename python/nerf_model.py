@@ -2,7 +2,7 @@ import numpy as np
 import torch
 import torch.nn as nn
 from radiance_field import RadianceField
-from sample_function import split_ray, sample_coarse, sample_fine, rgb_and_weight
+from nerf_function import split_ray, sample_coarse, sample_fine, rgb_and_weight
 
 
 class NeRF(nn.Module):
