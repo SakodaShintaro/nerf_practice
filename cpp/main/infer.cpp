@@ -9,6 +9,13 @@
 #include "../timer.hpp"
 #include "../utils.hpp"
 
+cv::Mat ToCvImage(at::Tensor tensor) {
+  const int32_t width = tensor.size(0);
+  const int32_t height = tensor.size(1);
+  cv::Mat output_mat(cv::Size{height, width}, CV_8UC3, tensor.data_ptr<uchar>());
+  return output_mat;
+}
+
 int main() {
   const std::string dataset_path = "../data/train/greek/";
 
@@ -59,8 +66,12 @@ int main() {
       C_all = (i == 0 ? C_f : torch::concatenate({C_all, C_f}, 0));
     }
     C_all = C_all.reshape({param.height, param.width, 3});
-    C_all = torch::clamp(C_all, 0.0f, 1.0f);
-
-    std::cout << C_all.sizes() << std::endl;
+    C_all = torch::clamp(C_all, 0.0f, 1.0f) * 255;
+    cv::Mat image = ToCvImage(C_all.to(torch::kChar));
+    std::stringstream ss;
+    ss << save_dir;
+    ss << std::setfill('0') << std::setw(8) << ind;
+    ss << ".png";
+    cv::imwrite(ss.str(), image);
   }
 }
