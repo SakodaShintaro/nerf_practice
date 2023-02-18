@@ -9,11 +9,12 @@
 #include "../timer.hpp"
 #include "../utils.hpp"
 
-cv::Mat ToCvImage(at::Tensor tensor) {
-  const int32_t width = tensor.size(0);
-  const int32_t height = tensor.size(1);
-  cv::Mat output_mat(cv::Size{height, width}, CV_8UC3, tensor.data_ptr<uchar>());
-  return output_mat;
+cv::Mat ToCvImage(torch::Tensor tensor) {
+  tensor = tensor.cpu();
+  const int32_t height = tensor.size(0);
+  const int32_t width = tensor.size(1);
+  cv::Mat output_mat(cv::Size(width, height), CV_8UC3, tensor.data_ptr<uchar>());
+  return output_mat.clone();
 }
 
 int main() {
@@ -67,11 +68,14 @@ int main() {
     }
     C_all = C_all.reshape({param.height, param.width, 3});
     C_all = torch::clamp(C_all, 0.0f, 1.0f) * 255;
-    cv::Mat image = ToCvImage(C_all.to(torch::kChar));
+    C_all = C_all.to(torch::kByte);
+    cv::Mat image = ToCvImage(C_all);
     std::stringstream ss;
     ss << save_dir;
     ss << std::setfill('0') << std::setw(8) << ind;
     ss << ".png";
-    cv::imwrite(ss.str(), image);
+    const std::string save_path = ss.str();
+    cv::imwrite(save_path, image);
+    std::cout << "save " << save_path << std::endl;
   }
 }
