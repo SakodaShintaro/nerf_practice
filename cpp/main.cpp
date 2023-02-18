@@ -61,7 +61,7 @@ int main() {
   for (int32_t e = 1; e <= kEpoch; e++) {
     std::shuffle(ray_data.begin(), ray_data.end(), engine);
     float sum_loss = 0.0f;
-    float sum_loss_print = 0.0f;
+    int64_t sample_num = 0;
 
     for (int32_t i = 0; i < n_sample; i += kBatchSize) {
       step++;
@@ -89,10 +89,10 @@ int main() {
       C /= 255;
       torch::Tensor loss = torch::nn::functional::mse_loss(C_c, C) + torch::nn::functional::mse_loss(C_f, C);
       sum_loss += loss.item<float>() * o.size(0);
-      sum_loss_print += loss.item<float>() * o.size(0);
+      sample_num += o.size(0);
 
       if ((i / kBatchSize + 1) % kPrintInterval == 0) {
-        sum_loss_print /= kPrintInterval;
+        sum_loss /= sample_num;
         const int64_t elapsed_sec = timer.ElapsedSeconds();
         const int64_t elapsed_min = elapsed_sec / 60 % 60;
         const int64_t elapsed_hou = elapsed_sec / 3600;
@@ -105,10 +105,11 @@ int main() {
         ss << e << "\t";
         ss << step << "\t";
         ss << epoch_rate << "\t";
-        ss << sum_loss_print << "\t";
+        ss << sum_loss << "\t";
         ofs << ss.str() << std::endl;
         std::cout << ss.str() << std::endl;
-        sum_loss_print = 0;
+        sum_loss = 0;
+        sample_num = 0;
       }
 
       optimizer.zero_grad();

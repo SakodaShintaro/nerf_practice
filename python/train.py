@@ -38,7 +38,7 @@ if __name__ == "__main__":
     for e in range(1, N_EPOCH + 1):
         perm = np.random.permutation(n_sample)
         sum_loss = 0.
-        sum_loss_print = 0.
+        sample_num = 0
 
         for i in range(0, n_sample, BATCH_SIZE):
             step += 1
@@ -50,20 +50,21 @@ if __name__ == "__main__":
             C_c, C_f = nerf.forward(o, d)
             loss = F.mse_loss(C_c, C) + F.mse_loss(C_f, C)
             sum_loss += loss.item() * o.shape[0]
-            sum_loss_print += loss.item()
+            sample_num += o.shape[0]
 
             if (i / BATCH_SIZE + 1) % PRINT_INTERVAL == 0:
-                sum_loss_print /= PRINT_INTERVAL
+                sum_loss /= sample_num
                 elapsed_sec = int(time.time() - start_time)
                 elapsed_min = elapsed_sec // 60 % 60
                 elapsed_hou = elapsed_sec // 3600
                 elapsed_str = f"{elapsed_hou:02d}:{elapsed_min:02d}:{elapsed_sec % 60:02d}"
                 epoch_rate = 100 * (i + BATCH_SIZE) / n_sample
-                print_str = f"{elapsed_str}\t{e}\t{step}\t{epoch_rate:5.1f}\t{sum_loss_print:.5f}\n"
+                print_str = f"{elapsed_str}\t{e}\t{step}\t{epoch_rate:5.1f}\t{sum_loss:.5f}\n"
                 f.write(print_str)
                 f.flush()
                 print(print_str, end="")
-                sum_loss_print = 0
+                sum_loss = 0
+                sample_num = 0
 
             optimizer.zero_grad()
             loss.backward()
