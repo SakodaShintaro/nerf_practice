@@ -13,6 +13,8 @@ if __name__ == "__main__":
     print(DATASET_PATH)
     param = get_camera_intrinsic_parameter(DATASET_PATH)
     dataset_raw = get_dataset_raw(DATASET_PATH)
+    base_pose = dataset_raw[200]["pose"]
+    print(base_pose)
 
     # 512 * 512 はやや時間がかかるので半分のサイズでレンダリング
     param.f /= 2
@@ -47,7 +49,7 @@ if __name__ == "__main__":
     #                   [0,  0, 1, 0],
     #                   [0,  0, 0, 1]], dtype=np.float32)
 
-        o, d = camera_params_to_rays(param, R @ dataset_raw[200]["pose"])
+        o, d = camera_params_to_rays(param, R @ base_pose)
         o = o.reshape(-1, 3)
         d = d.reshape(-1, 3)
 
