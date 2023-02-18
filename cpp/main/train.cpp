@@ -1,4 +1,4 @@
-#include <filesystem>
+﻿#include <filesystem>
 #include <iostream>
 #include <opencv2/opencv.hpp>
 #include <random>
@@ -96,19 +96,18 @@ int main() {
         std::cout << ss.str() << std::endl;
         sum_loss = 0;
         sample_num = 0;
+        torch::save(nerf, save_dir + "nerf_model.pt");
+        torch::save(optimizer, save_dir + "optimizer.pt");
       }
 
       optimizer.zero_grad();
       loss.backward();
       optimizer.step();
-      torch::save(nerf, save_dir + "nerf_model.pt");
       if (step >= kMaxStep) {
         break;
       }
     }
 
-    torch::save(nerf, save_dir + "nerf_model.pt");
-    torch::save(optimizer, save_dir + "optimizer.pt");
     if (step >= kMaxStep) {
       break;
     }

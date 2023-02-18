@@ -65,17 +65,15 @@ if __name__ == "__main__":
                 print(print_str, end="")
                 sum_loss = 0
                 sample_num = 0
+                # save state.
+                torch.save(nerf.state_dict(), f"{save_dir}/nerf_model.pt")
+                torch.save(optimizer.state_dict(), f"{save_dir}/optimizer.pt")
 
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
-            torch.save(nerf.state_dict(), f"{save_dir}/nerf_model.pt")
             if step >= MAX_STEP:
                 break
-
-        # save state.
-        torch.save(nerf.state_dict(), f"{save_dir}/nerf_model.pt")
-        torch.save(optimizer.state_dict(), f"{save_dir}/optimizer.pt")
 
         if step >= MAX_STEP:
             break
