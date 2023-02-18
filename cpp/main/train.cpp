@@ -1,4 +1,4 @@
-﻿#include <filesystem>
+#include <filesystem>
 #include <iostream>
 #include <opencv2/opencv.hpp>
 #include <random>
@@ -108,7 +108,7 @@ int main() {
     }
 
     torch::save(nerf, save_dir + "nerf_model.pt");
-    torch::save(optimizer, save_dir + "nerf_model.pt");
+    torch::save(optimizer, save_dir + "optimizer.pt");
     if (step >= kMaxStep) {
       break;
     }
