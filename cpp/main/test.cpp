@@ -22,8 +22,16 @@ void TestGetRays() {
   dataset_raw[i].pose = ParsePose(pose_paths[i]);
   dataset_raw[i].image = cv::imread(image_paths[i]);
   std::vector<RayData> curr_rays = GetRays(param, dataset_raw[i]);
-  std::cout << curr_rays[0].o << std::endl;
-  std::cout << curr_rays[0].d << std::endl;
+
+  curr_rays.erase(curr_rays.begin() + 1, curr_rays.end());
+
+  auto [o, d, C] = RayData2Tensor(curr_rays);
+  std::cout << "o = " << o << std::endl;
+  std::cout << "d = " << d << std::endl;
+  std::cout << "C = " << C << std::endl;
+
+  NeRF nerf;
+  nerf->forward(o, d);
 }
 
 int main() { TestGetRays(); }
