@@ -66,26 +66,13 @@ int main() {
       step++;
 
       // ミニバッチを作成
-      std::vector<float> o_vec;
-      std::vector<float> d_vec;
-      std::vector<float> C_vec;
-      for (int32_t j = i; j < std::min(i + kBatchSize, n_sample); j++) {
-        o_vec.push_back(ray_data[j].o.x());
-        o_vec.push_back(ray_data[j].o.y());
-        o_vec.push_back(ray_data[j].o.z());
-        d_vec.push_back(ray_data[j].d.x());
-        d_vec.push_back(ray_data[j].d.y());
-        d_vec.push_back(ray_data[j].d.z());
-        C_vec.push_back(ray_data[j].bgr[0]);
-        C_vec.push_back(ray_data[j].bgr[1]);
-        C_vec.push_back(ray_data[j].bgr[2]);
-      }
-      torch::Tensor o = torch::tensor(o_vec).view({-1, 3});
-      torch::Tensor d = torch::tensor(d_vec).view({-1, 3});
-      torch::Tensor C = torch::tensor(C_vec).view({-1, 3});
-      auto [C_c, C_f] = nerf->forward(o, d);
+      const std::vector<RayData> curr_data(ray_data.begin() + i, ray_data.begin() + std::min(i + kBatchSize, n_sample));
+      auto [o, d, C] = RayData2Tensor(curr_data);
       C = C.to(nerf->device());
       C /= 255;
+
+      // 推論
+      auto [C_c, C_f] = nerf->forward(o, d);
       torch::Tensor loss = torch::nn::functional::mse_loss(C_c, C) + torch::nn::functional::mse_loss(C_f, C);
       sum_loss += loss.item<float>() * o.size(0);
       sample_num += o.size(0);
