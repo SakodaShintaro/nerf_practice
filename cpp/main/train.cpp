@@ -3,14 +3,13 @@
 #include <opencv2/opencv.hpp>
 #include <random>
 
-#include "data.hpp"
-#include "nerf_function.hpp"
-#include "nerf_model.hpp"
-#include "timer.hpp"
-#include "utils.hpp"
+#include "../data.hpp"
+#include "../nerf_function.hpp"
+#include "../nerf_model.hpp"
+#include "../timer.hpp"
+#include "../utils.hpp"
 
 int main() {
-  std::cout << "NeRF Practice" << std::endl;
   const std::string dataset_path = "../data/train/greek/";
 
   const CameraIntrinsicParameter param = GetCameraIntrinsicParameter(dataset_path);
