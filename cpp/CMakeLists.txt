@@ -19,9 +19,12 @@ file(GLOB SRCS ./*.cpp)
 # 実行ファイルの定義
 add_executable(train ./main/train.cpp ${SRCS})
 add_executable(infer ./main/infer.cpp ${SRCS})
+add_executable(test ./main/test.cpp ${SRCS})
 
 # OpenCVの設定
 target_include_directories(train PUBLIC ${OpenCV_INCLUDE_DIRS} ${TORCH_INCLUDE_DIRS} /usr/include/eigen3)
 target_include_directories(infer PUBLIC ${OpenCV_INCLUDE_DIRS} ${TORCH_INCLUDE_DIRS} /usr/include/eigen3)
+target_include_directories(test PUBLIC ${OpenCV_INCLUDE_DIRS} ${TORCH_INCLUDE_DIRS} /usr/include/eigen3)
 target_link_libraries(train PUBLIC ${OpenCV_LIBRARIES} ${TORCH_LIBRARIES})
 target_link_libraries(infer PUBLIC ${OpenCV_LIBRARIES} ${TORCH_LIBRARIES})
+target_link_libraries(test PUBLIC ${OpenCV_LIBRARIES} ${TORCH_LIBRARIES})
