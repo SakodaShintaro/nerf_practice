@@ -97,13 +97,13 @@ std::pair<torch::Tensor, torch::Tensor> _rgb_and_weight(RadianceField func, torc
   torch::Tensor tl = t.index({Slice(None, None), Slice(None, -1)});
   torch::Tensor tr = t.index({Slice(None, None), Slice(1, None)});
   torch::Tensor delta = torch::pad(tr - tl, {0, 1}, "constant", 1e8);
-  torch::Tensor mass = sigma.index({"...", 0});
+  torch::Tensor mass = sigma.index({"...", 0}) * delta;
   mass = torch::pad(mass, {1, 0});
 
   torch::Tensor mass_l = mass.index({Slice(None, None), Slice(None, -1)});
   torch::Tensor mass_r = mass.index({Slice(None, None), Slice(1, None)});
-  torch::Tensor alpha = 1 - torch::exp(-mass_l);
-  torch::Tensor T = torch::exp(-torch::cumsum(mass_r, 1));
+  torch::Tensor alpha = 1 - torch::exp(-mass_r);
+  torch::Tensor T = torch::exp(-torch::cumsum(mass_l, 1));
   torch::Tensor w = T * alpha;
   return std::make_pair(rgb, w);
 }
