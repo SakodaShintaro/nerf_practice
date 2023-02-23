@@ -42,7 +42,7 @@ int main() {
   Pose base_pose;
 
   for (int32_t ind = 0; ind < kNum; ind++) {
-    const float a = -M_PI + (2 * M_PI) / kNum;
+    const float a = -M_PI + (2 * M_PI) / kNum * ind;
     const float c = std::cos(a);
     const float s = std::sin(a);
     Data data;
