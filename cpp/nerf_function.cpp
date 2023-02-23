@@ -53,7 +53,7 @@ torch::Tensor _pcpdf(torch::Tensor partition, torch::Tensor weights, int32_t N_s
     torch::Tensor max_j = cum_weights.index({Slice(None, None), Slice(j + 1, j + 2)});
     torch::Tensor a_j = a.index({Slice(None, None), Slice(j, j + 1)});
     torch::Tensor b_j = b.index({Slice(None, None), Slice(j, j + 1)});
-    torch::Tensor mask = ((min_j <= sample) & (_sample < max_j)).to(torch::kFloat32);
+    torch::Tensor mask = ((min_j <= _sample) & (_sample < max_j)).to(torch::kFloat32);
     sample += (a_j * _sample + b_j) * mask;
   }
   return sample;
