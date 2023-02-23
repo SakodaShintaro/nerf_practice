@@ -24,8 +24,9 @@ def test():
     print(f"o = {o}")
     print(f"d = {d}")
 
-    nerf.forward(o, d)
-
+    C_c, C_f = nerf.forward(o, d)
+    print(f"C_c = {C_c}")
+    print(f"C_f = {C_f}")
 
 if __name__ == "__main__":
     test()

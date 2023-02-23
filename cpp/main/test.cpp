@@ -31,7 +31,9 @@ void TestGetRays() {
   std::cout << "C = " << C << std::endl;
 
   NeRF nerf;
-  nerf->forward(o, d);
+  auto [C_c, C_f] = nerf->forward(o, d);
+  std::cout << "C_c = " << C_c << std::endl;
+  std::cout << "C_f = " << C_f << std::endl;
 }
 
 int main() { TestGetRays(); }
