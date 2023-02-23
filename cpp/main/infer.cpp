@@ -19,6 +19,16 @@ cv::Mat ToCvImage(torch::Tensor tensor) {
 
 int main() {
   const std::string dataset_path = "../data/train/greek/";
+  const std::vector<std::string> pose_paths = Glob(dataset_path + "pose/");
+  const std::vector<std::string> image_paths = Glob(dataset_path + "rgb/");
+  assert(pose_paths.size() == image_paths.size());
+  const int32_t N = pose_paths.size();
+  std::vector<Data> dataset_raw(N);
+  for (int32_t i = 0; i < N; i++) {
+    std::cout << pose_paths[i] << " " << image_paths[i] << std::endl;
+    dataset_raw[i].pose = ParsePose(pose_paths[i]);
+    dataset_raw[i].image = cv::imread(image_paths[i]);
+  }
 
   CameraIntrinsicParameter param = GetCameraIntrinsicParameter(dataset_path);
   param.f /= 2;
@@ -39,7 +49,7 @@ int main() {
   constexpr int32_t kNum = 64;
   constexpr int32_t kBatchSize = 2048;
 
-  Pose base_pose;
+  Pose base_pose = dataset_raw[200].pose;
 
   for (int32_t ind = 0; ind < kNum; ind++) {
     const float a = -M_PI + (2 * M_PI) / kNum * ind;
