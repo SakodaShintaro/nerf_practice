@@ -27,12 +27,6 @@ def gamma(p, L):
     return e
 
 
-def _init_weights(m):
-    if isinstance(m, nn.Linear):
-        nn.init.kaiming_normal_(m.weight)
-        nn.init.zeros_(m.bias)
-
-
 class RadianceField(nn.Module):
     """Radiance Field Functions.
 
@@ -61,8 +55,6 @@ class RadianceField(nn.Module):
         self.layer11 = nn.Linear(128, 128)
         self.layer12 = nn.Linear(128, 128)
         self.rgb = nn.Linear(128, 3)
-
-        self.apply(_init_weights)
 
     def forward(self, x, d):
         """Apply function.
