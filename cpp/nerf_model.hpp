@@ -9,7 +9,7 @@
 class NeRFImpl : public torch::nn::Module {
  public:
   NeRFImpl(float _t_n = 0.0f, float _t_f = 2.5f, int32_t _L_x = 10, int32_t _L_d = 4,
-           cv::Vec3b _c_bg = (255, 255, 255));
+           cv::Vec3b _c_bg = {255, 255, 255});
   torch::Device device();
   std::pair<torch::Tensor, torch::Tensor> forward(torch::Tensor o, torch::Tensor d);
 
