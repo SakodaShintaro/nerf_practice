@@ -28,8 +28,8 @@ class NeRF(nn.Module):
 
     def forward(self, o: torch.Tensor, d: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
         device = self.device()
-        o = torch.tensor(o, device=device)
-        d = torch.tensor(d, device=device)
+        o = o.to(device)
+        d = d.to(device)
 
         batch_size = o.shape[0]
         device = o.device

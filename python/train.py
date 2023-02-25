@@ -12,8 +12,10 @@ if __name__ == "__main__":
     parser.add_argument("--max_step", type=int, default=1e9)
     args = parser.parse_args()
 
-    _dataset = np.load(f'{RESULT_DIR}/dataset.npz')
-    dataset = {'o': _dataset['o'], 'd': _dataset['d'], 'C': _dataset['C']}
+    dataset = np.load(f'{RESULT_DIR}/dataset.npz')
+    o_np = dataset['o']
+    d_np = dataset['d']
+    C_np = dataset['C']
 
     N_EPOCH = 1
     BATCH_SIZE = 2048
@@ -27,7 +29,7 @@ if __name__ == "__main__":
         nerf.parameters(),
         lr=3e-4, betas=(0.9, 0.999), eps=1e-7)
 
-    n_sample = dataset['o'].shape[0]
+    n_sample = o_np.shape[0]
 
     save_dir = f"{RESULT_DIR}/train/"
     os.makedirs(save_dir, exist_ok=True)
@@ -47,9 +49,11 @@ if __name__ == "__main__":
 
         for i in range(0, n_sample, BATCH_SIZE):
             step += 1
-            o = dataset['o'][perm[i:i + BATCH_SIZE]]
-            d = dataset['d'][perm[i:i + BATCH_SIZE]]
-            C = dataset['C'][perm[i:i + BATCH_SIZE]]
+            o = o_np[perm[i:i + BATCH_SIZE]]
+            d = d_np[perm[i:i + BATCH_SIZE]]
+            C = C_np[perm[i:i + BATCH_SIZE]]
+            o = torch.tensor(o, device=nerf.device())
+            d = torch.tensor(d, device=nerf.device())
             C = torch.tensor(C, device=nerf.device())
 
             C_c, C_f = nerf.forward(o, d)
