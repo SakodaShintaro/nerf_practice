@@ -5,29 +5,6 @@ import torch.nn.functional as F
 from typing import Tuple
 
 
-def gamma(p: torch.Tensor, L: int) -> torch.Tensor:
-    """Encode positions.
-
-    Args:
-        p (torch.Tensor, [batch_size, dim]): Position.
-        L (int): encoding param.
-
-    Returns:
-        torch.Tensor [batch_size, dim * L]: Encoded position.
-
-    """
-    # normalization.
-    p = torch.tanh(p)
-
-    batch_size = p.shape[0]
-    i = torch.arange(L, dtype=torch.float32, device=p.device)
-    a = (2. ** i[None, None]) * np.pi * p[:, :, None]
-    s = torch.sin(a)
-    c = torch.cos(a)
-    e = torch.cat([s, c], dim=2).view(batch_size, -1)
-    return e
-
-
 class RadianceField(nn.Module):
     """Radiance Field Functions.
 
@@ -70,8 +47,8 @@ class RadianceField(nn.Module):
 
         """
         # positional encoding.
-        e_x = gamma(x, self.L_x)
-        e_d = gamma(d, self.L_d)
+        e_x = self.positional_encoding1(x, self.L_x)
+        e_d = self.positional_encoding1(d, self.L_d)
 
         # forward
         h = F.relu(self.layer0(e_x))
@@ -93,3 +70,25 @@ class RadianceField(nn.Module):
         rgb = torch.sigmoid(self.rgb(h))
 
         return rgb, sigma
+
+    def positional_encoding1(self, p: torch.Tensor, L: int) -> torch.Tensor:
+        """Encode positions by sin, cos
+
+        Args:
+            p (torch.Tensor, [batch_size, dim]): Position.
+            L (int): encoding param.
+
+        Returns:
+            torch.Tensor [batch_size, dim * 2 * L]: Encoded position.
+
+        """
+        # normalization.
+        p = torch.tanh(p)
+
+        batch_size = p.shape[0]
+        i = torch.arange(L, dtype=torch.float32, device=p.device)
+        a = (2. ** i[None, None]) * np.pi * p[:, :, None]
+        s = torch.sin(a)
+        c = torch.cos(a)
+        e = torch.cat([s, c], dim=2).view(batch_size, -1)
+        return e
