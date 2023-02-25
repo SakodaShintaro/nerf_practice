@@ -27,7 +27,7 @@ if __name__ == "__main__":
 
     optimizer = torch.optim.Adam(
         nerf.parameters(),
-        lr=3e-4, betas=(0.9, 0.999), eps=1e-7)
+        lr=2e-4, betas=(0.9, 0.999), eps=1e-7)
 
     n_sample = o_np.shape[0]
 
