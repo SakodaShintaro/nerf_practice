@@ -4,6 +4,21 @@ import torch.nn.functional as F
 from typing import Tuple
 from positional_encoder_freq import PositionalEncoderFreq
 
+
+class SkipConnection(nn.Module):
+    def __init__(self, ch_num: int, layer_num: int) -> None:
+        super().__init__()
+        self.layers = nn.ModuleList([nn.Linear(ch_num, ch_num) for _ in range(layer_num)])
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        for layer in self.layers:
+            y = x
+            x = layer(x)
+            x = F.relu(x)
+            x = x + y
+        return x
+
+
 class RadianceField(nn.Module):
     """Radiance Field Functions.
 
@@ -19,19 +34,12 @@ class RadianceField(nn.Module):
         self.enc_dir = PositionalEncoderFreq(L_d)
 
         self.layer0 = nn.Linear(self.enc_pos.encoded_dim(), 256)
-        self.layer1 = nn.Linear(256, 256)
-        self.layer2 = nn.Linear(256, 256)
-        self.layer3 = nn.Linear(256, 256)
-        self.layer4 = nn.Linear(256, 256)
+        self.skip0 = SkipConnection(256, 4)
         self.layer5 = nn.Linear(256 + self.enc_pos.encoded_dim(), 256)
-        self.layer6 = nn.Linear(256, 256)
-        self.layer7 = nn.Linear(256, 256)
+        self.skip1 = SkipConnection(256, 3)
         self.sigma = nn.Linear(256, 1)
-        self.layer8 = nn.Linear(256, 256)
         self.layer9 = nn.Linear(256 + self.enc_dir.encoded_dim(), 128)
-        self.layer10 = nn.Linear(128, 128)
-        self.layer11 = nn.Linear(128, 128)
-        self.layer12 = nn.Linear(128, 128)
+        self.skip2 = SkipConnection(128, 3)
         self.rgb = nn.Linear(128, 3)
 
     def forward(self, x: torch.Tensor, d: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
@@ -52,22 +60,14 @@ class RadianceField(nn.Module):
 
         # forward
         h = F.relu(self.layer0(e_x))
-        h = F.relu(self.layer1(h))
-        h = F.relu(self.layer2(h))
-        h = F.relu(self.layer3(h))
-        h = F.relu(self.layer4(h))
+        h = self.skip0(h)
         h = torch.cat([h, e_x], dim=1)
         h = F.relu(self.layer5(h))
-        h = F.relu(self.layer6(h))
-        h = F.relu(self.layer7(h))
+        h = self.skip1(h)
         sigma = F.relu(self.sigma(h))
-        h = F.relu(self.layer8(h))
         h = torch.cat([h, e_d], dim=1)
         h = F.relu(self.layer9(h))
-        h = F.relu(self.layer10(h))
-        h = F.relu(self.layer11(h))
-        h = F.relu(self.layer12(h))
+        h = self.skip2(h)
         rgb = torch.sigmoid(self.rgb(h))
 
         return rgb, sigma
-
