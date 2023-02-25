@@ -61,7 +61,7 @@ class RadianceField(nn.Module):
         h = F.relu(self.layer6(h))
         h = F.relu(self.layer7(h))
         sigma = F.relu(self.sigma(h))
-        h = self.layer8(h)
+        h = F.relu(self.layer8(h))
         h = torch.cat([h, e_d], dim=1)
         h = F.relu(self.layer9(h))
         h = F.relu(self.layer10(h))
