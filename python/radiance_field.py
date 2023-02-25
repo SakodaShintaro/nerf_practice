@@ -9,10 +9,12 @@ class SkipConnection(nn.Module):
     def __init__(self, ch_num: int, layer_num: int) -> None:
         super().__init__()
         self.layers = nn.ModuleList([nn.Linear(ch_num, ch_num) for _ in range(layer_num)])
+        self.norms = nn.ModuleList([nn.LayerNorm(ch_num) for _ in range(layer_num)])
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        for layer in self.layers:
+        for norm, layer in zip(self.norms, self.layers):
             y = x
+            x = norm(x)
             x = layer(x)
             x = F.relu(x)
             x = x + y
