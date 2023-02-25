@@ -1,5 +1,5 @@
 class CameraIntrinsicParameter:
-    def __init__(self, f:float, cx:float, cy:float, width:float, height:float) -> None:
+    def __init__(self, f:float, cx:float, cy:float, width:int, height:int) -> None:
         self.f = f
         self.cx = cx
         self.cy = cy

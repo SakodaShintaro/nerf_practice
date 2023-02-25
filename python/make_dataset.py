@@ -6,10 +6,11 @@ from nerf_function import camera_params_to_rays
 from constants import DATASET_PATH, RESULT_DIR
 from tqdm import tqdm
 from camera_intrinsic_parameter import CameraIntrinsicParameter
+from typing import List, Dict
 
 
 def get_camera_intrinsic_parameter(dataset_path: str) -> CameraIntrinsicParameter:
-    def _line2floats(line):
+    def _line2floats(line: str) -> List[float]:
         return map(float, line.strip().split())
 
     with open(os.path.join(dataset_path, 'intrinsics.txt'), 'r') as file:
@@ -39,7 +40,7 @@ def get_camera_intrinsic_parameter(dataset_path: str) -> CameraIntrinsicParamete
     return CameraIntrinsicParameter(f, cx, cy, width, height)
 
 
-def get_dataset_raw(dataset_path: str):
+def get_dataset_raw(dataset_path: str) -> List[Dict[str, np.ndarray]]:
     pose_paths = sorted(glob.glob(dataset_path + 'pose/*.txt'))
     rgb_paths = sorted(glob.glob(dataset_path + 'rgb/*.png'))
 

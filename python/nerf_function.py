@@ -2,6 +2,8 @@ import numpy as np
 import torch
 import torch.nn.functional as F
 from camera_intrinsic_parameter import CameraIntrinsicParameter
+from typing import Tuple
+from radiance_field import RadianceField
 
 
 def split_ray(t_n: float, t_f: float, N: int, batch_size: int) -> torch.Tensor:
@@ -59,7 +61,7 @@ def _pcpdf(partitions: torch.Tensor, weights: torch.Tensor, N_s: int) -> torch.T
 
     # normalize weights.
     weights[weights < 1e-16] = 1e-16
-    weights /= weights.sum(dim=1, keepdims=True)
+    weights /= weights.sum(dim=1, keepdim=True)
 
     _sample = torch.rand((batch_size, N_s)).to(weights.device)
     _sample, _ = torch.sort(_sample, dim=1)
@@ -106,22 +108,22 @@ def sample_fine(partitions: torch.Tensor, weights: torch.Tensor, t_c: torch.Tens
     return t
 
 
-def ray(o, d, t):
+def ray(o: torch.Tensor, d: torch.Tensor, t: torch.Tensor) -> torch.Tensor:
     """Returns points on the ray.
 
     Args:
-        o (ndarray, [batch_size, 3]): Start points of the ray.
-        d (ndarray, [batch_size, 3]): Directions of the ray.
-        t (ndarray, [batch_size, N]): Sampled t.
+        o (Tensor, [batch_size, 3]): Start points of the ray.
+        d (Tensor, [batch_size, 3]): Directions of the ray.
+        t (Tensor, [batch_size, N]): Sampled t.
 
     Returns:
-        ndarray, [batch_size, N, 3]: Points on the ray.
+        Tensor, [batch_size, N, 3]: Points on the ray.
 
     """
     return o[:, None] + t[..., None] * d[:, None]
 
 
-def rgb_and_weight(func, o, d, t, N):
+def rgb_and_weight(func: RadianceField, o: torch.Tensor, d: torch.Tensor, t: torch.Tensor, N: int) -> Tuple[torch.Tensor, torch.Tensor]:
     batch_size = o.shape[0]
 
     x = ray(o, d, t)
@@ -147,7 +149,7 @@ def rgb_and_weight(func, o, d, t, N):
     return rgb, w
 
 
-def camera_params_to_rays(param: CameraIntrinsicParameter, pose: np.ndarray):
+def camera_params_to_rays(param: CameraIntrinsicParameter, pose: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
     """Make rays (o, d) from camera parameters.
 
     Args:

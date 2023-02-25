@@ -2,17 +2,18 @@ import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from typing import Tuple
 
 
-def gamma(p, L):
+def gamma(p: torch.Tensor, L: int) -> torch.Tensor:
     """Encode positions.
 
     Args:
-        p (ndarray, [batch_size, dim]): Position.
+        p (torch.Tensor, [batch_size, dim]): Position.
         L (int): encoding param.
 
     Returns:
-        ndarray [batch_size, dim * L]: Encoded position.
+        torch.Tensor [batch_size, dim * L]: Encoded position.
 
     """
     # normalization.
@@ -23,7 +24,7 @@ def gamma(p, L):
     a = (2. ** i[None, None]) * np.pi * p[:, :, None]
     s = torch.sin(a)
     c = torch.cos(a)
-    e = torch.cat([s, c], axis=2).view(batch_size, -1)
+    e = torch.cat([s, c], dim=2).view(batch_size, -1)
     return e
 
 
@@ -34,7 +35,7 @@ class RadianceField(nn.Module):
 
     """
 
-    def __init__(self, L_x=10, L_d=4):
+    def __init__(self, L_x: int = 10, L_d: int = 4) -> None:
         # positional encoding parameter.
         self.L_x = L_x
         self.L_d = L_d
@@ -56,7 +57,7 @@ class RadianceField(nn.Module):
         self.layer12 = nn.Linear(128, 128)
         self.rgb = nn.Linear(128, 3)
 
-    def forward(self, x, d):
+    def forward(self, x: torch.Tensor, d: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
         """Apply function.
 
         Args:
@@ -78,13 +79,13 @@ class RadianceField(nn.Module):
         h = F.relu(self.layer2(h))
         h = F.relu(self.layer3(h))
         h = F.relu(self.layer4(h))
-        h = torch.cat([h, e_x], axis=1)
+        h = torch.cat([h, e_x], dim=1)
         h = F.relu(self.layer5(h))
         h = F.relu(self.layer6(h))
         h = F.relu(self.layer7(h))
         sigma = F.relu(self.sigma(h))
         h = self.layer8(h)
-        h = torch.cat([h, e_d], axis=1)
+        h = torch.cat([h, e_d], dim=1)
         h = F.relu(self.layer9(h))
         h = F.relu(self.layer10(h))
         h = F.relu(self.layer11(h))

@@ -23,7 +23,7 @@ if __name__ == "__main__":
     param.width //= 2
     param.height //= 2
 
-    nerf = NeRF(t_n=0., t_f=2.5, c_bg=(1, 1, 1))
+    nerf = NeRF(t_n=0., t_f=2.5)
     nerf.load_state_dict(torch.load(f"{RESULT_DIR}/train/nerf_model.pt"))
     nerf.to("cuda")
     nerf.eval()
@@ -59,7 +59,9 @@ if __name__ == "__main__":
             for i in range(0, o.shape[0], nerf.BATCH_SIZE):
                 o_i = o[i:i + nerf.BATCH_SIZE]
                 d_i = d[i:i + nerf.BATCH_SIZE]
-                C_c_i, C_f_i = nerf.forward(o_i, d_i)
+                o_t = torch.tensor(o_i, device=nerf.device())
+                d_t = torch.tensor(d_i, device=nerf.device())
+                C_c_i, C_f_i = nerf.forward(o_t, d_t)
                 _C_c.append(C_c_i.cpu().numpy())
                 _C_f.append(C_f_i.cpu().numpy())
 

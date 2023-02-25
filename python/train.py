@@ -20,7 +20,7 @@ if __name__ == "__main__":
     MAX_STEP = args.max_step
     PRINT_INTERVAL = 100
 
-    nerf = NeRF(t_n=0., t_f=2.5, c_bg=(1, 1, 1))
+    nerf = NeRF(t_n=0., t_f=2.5)
     nerf.to("cuda")
 
     optimizer = torch.optim.Adam(
