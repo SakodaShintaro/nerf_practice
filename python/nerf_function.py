@@ -45,7 +45,7 @@ def sample_coarse(partitions: torch.Tensor) -> torch.Tensor:
     return t
 
 
-def _pcpdf(partitions: torch.Tensor, weights: torch.Tensor, N_s: int) -> torch.Tensor:
+def piecewise_constant_pdf(partitions: torch.Tensor, weights: torch.Tensor, N_s: int) -> torch.Tensor:
     """Sample from piecewise-constant probability density function.
 
     Args:
@@ -103,7 +103,7 @@ def sample_fine(partitions: torch.Tensor, weights: torch.Tensor, t_c: torch.Tens
         Tensor, [batch_size, N_c+N_f]: Sampled t.
 
     """
-    t_f = _pcpdf(partitions, weights, N_f)
+    t_f = piecewise_constant_pdf(partitions, weights, N_f)
     t = torch.concatenate([t_c, t_f], dim=1)
     t, _ = torch.sort(t, dim=1)
     return t
