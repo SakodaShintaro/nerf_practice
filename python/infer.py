@@ -13,7 +13,7 @@ if __name__ == "__main__":
     print(DATASET_PATH)
     param = get_camera_intrinsic_parameter(DATASET_PATH)
     dataset_raw = get_dataset_raw(DATASET_PATH)
-    base_pose = dataset_raw[200]["pose"]
+    base_pose = dataset_raw[200].pose
     print(base_pose)
 
     # 512 * 512 はやや時間がかかるので半分のサイズでレンダリング

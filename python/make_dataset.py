@@ -7,6 +7,9 @@ from constants import DATASET_PATH, RESULT_DIR
 from tqdm import tqdm
 from camera_intrinsic_parameter import CameraIntrinsicParameter
 from typing import List, Dict
+from collections import namedtuple
+
+RawData = namedtuple('RawData', ['pose', 'rgb'])
 
 
 def get_camera_intrinsic_parameter(dataset_path: str) -> CameraIntrinsicParameter:
@@ -40,7 +43,7 @@ def get_camera_intrinsic_parameter(dataset_path: str) -> CameraIntrinsicParamete
     return CameraIntrinsicParameter(f, cx, cy, width, height)
 
 
-def get_dataset_raw(dataset_path: str) -> List[Dict[str, np.ndarray]]:
+def get_dataset_raw(dataset_path: str) -> List[RawData]:
     pose_paths = sorted(glob.glob(dataset_path + 'pose/*.txt'))
     rgb_paths = sorted(glob.glob(dataset_path + 'rgb/*.png'))
 
@@ -52,10 +55,7 @@ def get_dataset_raw(dataset_path: str) -> List[Dict[str, np.ndarray]]:
 
         rgb = Image.open(rgb_path)
 
-        data = {
-            'pose': pose,
-            'rgb': rgb,
-        }
+        data = RawData(pose, rgb)
         dataset_raw.append(data)
     return dataset_raw
 
@@ -69,8 +69,8 @@ if __name__ == "__main__":
     C_list = []
 
     for data in tqdm(dataset_raw):
-        pose = data['pose']
-        rgb = data['rgb']
+        pose = data.pose
+        rgb = data.rgb
 
         o, d = camera_params_to_rays(param, pose)
         C = (np.array(rgb, dtype=np.float32) / 255.)[:, :, :3]

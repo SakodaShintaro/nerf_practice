@@ -9,8 +9,7 @@ def test() -> None:
     param = get_camera_intrinsic_parameter(DATASET_PATH)
     dataset_raw = get_dataset_raw(DATASET_PATH)
     i = 0
-    pose = dataset_raw[i]['pose']
-    rgb = dataset_raw[i]['rgb']
+    pose = dataset_raw[i].pose
     o_np, d_np = camera_params_to_rays(param, pose)
     o_np = o_np.reshape(-1, 3)
     d_np = d_np.reshape(-1, 3)
