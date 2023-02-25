@@ -7,6 +7,9 @@ class PositionalEncoderFreq(nn.Module):
         super().__init__()
         self.L = L
 
+    def encoded_dim(self):
+        return 6 * self.L
+
     def forward(self, p: torch.Tensor) -> torch.Tensor:
         """Encode positions by sin, cos
 
