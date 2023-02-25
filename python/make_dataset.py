@@ -14,7 +14,7 @@ RawData = namedtuple('RawData', ['pose', 'rgb'])
 
 def get_camera_intrinsic_parameter(dataset_path: str) -> CameraIntrinsicParameter:
     def _line2floats(line: str) -> List[float]:
-        return map(float, line.strip().split())
+        return list(map(float, line.strip().split()))
 
     with open(os.path.join(dataset_path, 'intrinsics.txt'), 'r') as file:
         # focal length, image centers.

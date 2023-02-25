@@ -2,7 +2,8 @@ import numpy as np
 import torch
 import torch.nn.functional as F
 from camera_intrinsic_parameter import CameraIntrinsicParameter
-from typing import Tuple
+from typing import Tuple, Any
+import numpy.typing as npt
 from radiance_field import RadianceField
 
 
@@ -149,7 +150,7 @@ def rgb_and_weight(func: RadianceField, o: torch.Tensor, d: torch.Tensor, t: tor
     return rgb, w
 
 
-def camera_params_to_rays(param: CameraIntrinsicParameter, pose: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
+def camera_params_to_rays(param: CameraIntrinsicParameter, pose: npt.NDArray[Any]) -> Tuple[npt.NDArray[Any], npt.NDArray[Any]]:
     """Make rays (o, d) from camera parameters.
 
     Args:

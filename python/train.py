@@ -79,7 +79,7 @@ if __name__ == "__main__":
                 torch.save(optimizer.state_dict(), f"{save_dir}/optimizer.pt")
 
             optimizer.zero_grad()
-            loss.backward()
+            loss.backward()  # type: ignore
             optimizer.step()
             if step >= MAX_STEP:
                 break
