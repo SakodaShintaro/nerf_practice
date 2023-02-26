@@ -3,31 +3,34 @@
 import math
 import torch
 from torch import nn
+from typing import Tuple
 
 
 class PositionalEncoderGrid(nn.Module):
-    def __init__(self, l=16, t=2**14, f=2, n_min=16, n_max=512):
+    def __init__(self) -> None:
         super().__init__()
-        self.l = l
-        self.t = t
-        self.f = f
+        self.l = 16
+        self.t = 2 ** 14
+        self.f = 2
+        n_min = 16
+        n_max = 512
 
-        b = math.exp((math.log(n_max) - math.log(n_min)) / (l - 1))
-        self.ns = [int(n_min * (b ** i)) for i in range(l)]
+        b = math.exp((math.log(n_max) - math.log(n_min)) / (self.l - 1))
+        self.ns = [int(n_min * (b ** i)) for i in range(self.l)]
 
         # Prime Numbers from
         # https://github.com/NVlabs/tiny-cuda-nn/blob/ee585fa47e99de4c26f6ae88be7bcb82b9295310/include/tiny-cuda-nn/encodings/grid.h#L83
         self.register_buffer('primes', torch.tensor([1, 2654435761, 805459861]))
 
         self.hash_table = nn.Parameter(
-            torch.rand([l, t, f], requires_grad=True) * 2e-4 - 1e-4)
+            torch.rand([self.l, self.t, self.f], requires_grad=True) * 2e-4 - 1e-4)
 
         self.bound = 2.0
 
-    def encoded_dim(self):
+    def encoded_dim(self) -> int:
         return self.l * self.f
 
-    def forward(self, inputs: torch.Tensor):
+    def forward(self, inputs: torch.Tensor) -> torch.Tensor:
         """Encode positions by multi resolution hash.
 
         Args:
@@ -43,19 +46,17 @@ class PositionalEncoderGrid(nn.Module):
 
         feature_list = list()
 
+        def get_min_max_per(value: torch.Tensor, width: float) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+            min = (value // width).long()
+            max = min + 1
+            per = (value - min * width) / width
+            return min, max, per
+
         for l, n in enumerate(self.ns):
             width = 1 / n
-            x_min = (inputs[:, 0] // width).long()
-            x_max = x_min + 1
-            x_per = (inputs[:, 0] - x_min * width) / width
-
-            y_min = (inputs[:, 1] // width).long()
-            y_max = y_min + 1
-            y_per = (inputs[:, 1] - y_min * width) / width
-
-            z_min = (inputs[:, 2] // width).long()
-            z_max = z_min + 1
-            z_per = (inputs[:, 2] - z_min * width) / width
+            x_min, x_max, x_per = get_min_max_per(inputs[:, 0], width)
+            y_min, y_max, y_per = get_min_max_per(inputs[:, 1], width)
+            z_min, z_max, z_per = get_min_max_per(inputs[:, 2], width)
 
             # (min, min, min)
             i1 = ((x_min * self.primes[0]) ^ (y_min * self.primes[1]) ^ (z_min * self.primes[2])) % self.t
