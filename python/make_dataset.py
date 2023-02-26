@@ -6,7 +6,7 @@ from nerf_function import camera_params_to_rays
 from constants import DATASET_PATH, RESULT_DIR
 from tqdm import tqdm
 from camera_intrinsic_parameter import CameraIntrinsicParameter
-from typing import List, Dict
+from typing import List
 from collections import namedtuple
 
 RawData = namedtuple('RawData', ['pose', 'rgb'])
