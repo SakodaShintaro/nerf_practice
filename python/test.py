@@ -17,6 +17,7 @@ def test() -> None:
     d_np = d_np[0:1]
 
     nerf = NeRF()
+    nerf.cuda()
     device = nerf.device()
     o_tensor = torch.tensor(o_np, device=device)
     d_tensor = torch.tensor(d_np, device=device)
