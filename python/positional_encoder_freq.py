@@ -7,7 +7,7 @@ class PositionalEncoderFreq(nn.Module):
         super().__init__()
         self.L = L
 
-    def encoded_dim(self):
+    def encoded_dim(self) -> int:
         return 6 * self.L
 
     def forward(self, p: torch.Tensor) -> torch.Tensor:
