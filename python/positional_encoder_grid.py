@@ -21,8 +21,8 @@ class PositionalEncoderGrid(nn.Module):
 
         self.hash_table = nn.Parameter(
             torch.rand([l, t, f], requires_grad=True) * 2e-4 - 1e-4)
-        
-        self.bound = 3.0
+
+        self.bound = 2.0
 
     def encoded_dim(self):
         return self.l * self.f
