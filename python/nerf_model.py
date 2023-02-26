@@ -43,8 +43,8 @@ class NeRF(nn.Module):
         bg = bg.view(1, 3)
 
         # coarse rendering.
-        _t_c = sample_coarse(partitions)
-        t_c = _t_c.to(device)
+        t_c = sample_coarse(partitions)
+        t_c = t_c.to(device)
 
         rgb_c, w_c = rgb_and_weight(self.rf_c, o, d, t_c, self.N_c)
         C_c = torch.sum(w_c[..., None] * rgb_c, dim=1)
@@ -52,7 +52,7 @@ class NeRF(nn.Module):
 
         # fine rendering.
         _w_c = w_c.clone()
-        t_f = sample_fine(partitions, _w_c, _t_c, self.N_f)
+        t_f = sample_fine(partitions, _w_c, t_c, self.N_f)
         t_f = t_f.to(device)
 
         rgb_f, w_f = rgb_and_weight(self.rf_f, o, d, t_f, self.N_f + self.N_c)
