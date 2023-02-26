@@ -21,11 +21,13 @@ class PositionalEncoderGrid(nn.Module):
 
         self.hash_table = nn.Parameter(
             torch.rand([l, t, f], requires_grad=True) * 2e-4 - 1e-4)
+        
+        self.bound = 3.0
 
     def encoded_dim(self):
         return self.l * self.f
 
-    def forward(self, inputs: torch.Tensor, bound: float = 1.0):
+    def forward(self, inputs: torch.Tensor):
         """Encode positions by multi resolution hash.
 
         Args:
@@ -36,7 +38,8 @@ class PositionalEncoderGrid(nn.Module):
             torch.Tensor [batch_size, self.f * self.l]: Encoded position.
 
         """
-        inputs = (inputs + bound) / (2 * bound)  # map to [0, 1]
+        inputs = (inputs + self.bound) / (2 * self.bound)  # map to [0, 1]
+        assert (inputs >= 0).all() and (inputs <= 1).all(), 'inputs must be in [0, 1]'
 
         feature_list = list()
 
@@ -45,9 +48,11 @@ class PositionalEncoderGrid(nn.Module):
             x_min = (inputs[:, 0] // width).long()
             x_max = x_min + 1
             x_per = (inputs[:, 0] - x_min * width) / width
+
             y_min = (inputs[:, 1] // width).long()
             y_max = y_min + 1
             y_per = (inputs[:, 1] - y_min * width) / width
+
             z_min = (inputs[:, 2] // width).long()
             z_max = z_min + 1
             z_per = (inputs[:, 2] - z_min * width) / width
