@@ -14,14 +14,14 @@ class NeRF(nn.Module):
 
     BATCH_SIZE = 2048
 
-    def __init__(self, t_n: float = 0., t_f: float = 2.5, L_x: int = 10, L_d: int = 4) -> None:
+    def __init__(self, t_n: float = 0., t_f: float = 2.5) -> None:
         self.t_n = t_n
         self.t_f = t_f
         self.c_bg = (1, 1, 1)
 
         super(NeRF, self).__init__()
-        self.rf_c = RadianceField(L_x=L_x, L_d=L_d)
-        self.rf_f = RadianceField(L_x=L_x, L_d=L_d)
+        self.rf_c = RadianceField()
+        self.rf_f = RadianceField()
 
     def device(self) -> torch.device:
         return next(self.parameters()).device

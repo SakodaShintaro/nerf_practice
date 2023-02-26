@@ -3,6 +3,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from typing import Tuple
 from positional_encoder_freq import PositionalEncoderFreq
+from positional_encoder_grid import PositionalEncoderGrid
 
 
 class SkipConnection(nn.Module):
@@ -28,12 +29,17 @@ class RadianceField(nn.Module):
 
     """
 
-    def __init__(self, L_x: int = 10, L_d: int = 4) -> None:
+    def __init__(self) -> None:
         super(RadianceField, self).__init__()
 
         # positional encoding parameter.
-        self.enc_pos = PositionalEncoderFreq(L_x)
-        self.enc_dir = PositionalEncoderFreq(L_d)
+        use_freq = True
+        if use_freq:
+            self.enc_pos = PositionalEncoderFreq(10)
+            self.enc_dir = PositionalEncoderFreq(4)
+        else:
+            self.enc_pos = PositionalEncoderGrid()
+            self.enc_dir = PositionalEncoderGrid()
 
         self.layer0 = nn.Linear(self.enc_pos.encoded_dim(), 256)
         self.skip0 = SkipConnection(256, 4)

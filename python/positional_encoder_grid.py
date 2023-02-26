@@ -5,7 +5,7 @@ import torch
 from torch import nn
 
 
-class MultiResolutionHashEncoder(nn.Module):
+class PositionalEncoderGrid(nn.Module):
     def __init__(self, l=16, t=2**14, f=2, n_min=16, n_max=512):
         super().__init__()
         self.l = l
@@ -98,8 +98,9 @@ class MultiResolutionHashEncoder(nn.Module):
         result = torch.cat(feature_list, dim=1)
         return result
 
+
 if __name__ == '__main__':
-    encoder = MultiResolutionHashEncoder()
+    encoder = PositionalEncoderGrid()
     x = torch.rand((256, 3))
     print(f"x.shape = {x.shape}")
     feature_map = encoder(x)
