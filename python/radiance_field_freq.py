@@ -70,6 +70,6 @@ class RadianceFieldFreq(nn.Module):
         h = torch.cat([h, e_d], dim=1)
         h = F.relu(self.layer9(h))
         h = self.skip2(h)
-        rgb = torch.sigmoid(self.rgb(h))
+        color = torch.sigmoid(self.rgb(h))
 
-        return rgb, sigma
+        return color, sigma
