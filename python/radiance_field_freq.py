@@ -3,7 +3,6 @@ import torch.nn as nn
 import torch.nn.functional as F
 from typing import Tuple
 from positional_encoder_freq import PositionalEncoderFreq
-from positional_encoder_grid import PositionalEncoderGrid
 
 
 class SkipConnection(nn.Module):
@@ -22,7 +21,7 @@ class SkipConnection(nn.Module):
         return x
 
 
-class RadianceField(nn.Module):
+class RadianceFieldFreq(nn.Module):
     """Radiance Field Functions.
 
     This is ``$F_\\Theta$`` in the paper.
@@ -30,16 +29,11 @@ class RadianceField(nn.Module):
     """
 
     def __init__(self) -> None:
-        super(RadianceField, self).__init__()
+        super(RadianceFieldFreq, self).__init__()
 
         # positional encoding parameter.
-        use_freq = True
-        if use_freq:
-            self.enc_pos = PositionalEncoderFreq(10)
-            self.enc_dir = PositionalEncoderFreq(4)
-        else:
-            self.enc_pos = PositionalEncoderGrid()
-            self.enc_dir = PositionalEncoderGrid()
+        self.enc_pos = PositionalEncoderFreq(10)
+        self.enc_dir = PositionalEncoderFreq(4)
 
         self.layer0 = nn.Linear(self.enc_pos.encoded_dim(), 256)
         self.skip0 = SkipConnection(256, 4)

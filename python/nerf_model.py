@@ -1,7 +1,8 @@
 import numpy as np
 import torch
 import torch.nn as nn
-from radiance_field import RadianceField
+from radiance_field_freq import RadianceFieldFreq
+from radiance_field_grid import RadianceFieldGrid
 from nerf_function import split_ray, sample_coarse, sample_fine, rgb_and_weight
 from typing import Tuple
 
@@ -20,8 +21,13 @@ class NeRF(nn.Module):
         self.c_bg = (1, 1, 1)
 
         super(NeRF, self).__init__()
-        self.rf_c = RadianceField()
-        self.rf_f = RadianceField()
+        use_freq = True
+        if use_freq:
+            self.rf_c = RadianceFieldFreq()
+            self.rf_f = RadianceFieldFreq()
+        else:
+            self.rf_c = RadianceFieldGrid()
+            self.rf_f = RadianceFieldGrid()
 
     def device(self) -> torch.device:
         return next(self.parameters()).device

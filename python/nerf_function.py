@@ -4,7 +4,7 @@ import torch.nn.functional as F
 from camera_intrinsic_parameter import CameraIntrinsicParameter
 from typing import Tuple, Any
 import numpy.typing as npt
-from radiance_field import RadianceField
+from radiance_field_freq import RadianceFieldFreq
 
 
 def split_ray(t_n: float, t_f: float, N: int, batch_size: int) -> torch.Tensor:
@@ -124,7 +124,7 @@ def ray(o: torch.Tensor, d: torch.Tensor, t: torch.Tensor) -> torch.Tensor:
     return o[:, None] + t[..., None] * d[:, None]
 
 
-def rgb_and_weight(func: RadianceField, o: torch.Tensor, d: torch.Tensor, t: torch.Tensor, N: int) -> Tuple[torch.Tensor, torch.Tensor]:
+def rgb_and_weight(func: RadianceFieldFreq, o: torch.Tensor, d: torch.Tensor, t: torch.Tensor, N: int) -> Tuple[torch.Tensor, torch.Tensor]:
     batch_size = o.shape[0]
 
     x = ray(o, d, t)
