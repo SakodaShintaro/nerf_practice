@@ -1,4 +1,3 @@
-import numpy as np
 import torch
 import torch.nn as nn
 from radiance_field_freq import RadianceFieldFreq
