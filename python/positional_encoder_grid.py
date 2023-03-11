@@ -25,7 +25,7 @@ class PositionalEncoderGrid(nn.Module):
         self.hash_table = nn.Parameter(
             torch.rand([self.l, self.t, self.f], requires_grad=True) * 2e-4 - 1e-4)
 
-        self.bound = 2.0
+        self.bound = 3
 
     def encoded_dim(self) -> int:
         return self.l * self.f
@@ -42,7 +42,7 @@ class PositionalEncoderGrid(nn.Module):
 
         """
         inputs = (inputs + self.bound) / (2 * self.bound)  # map to [0, 1]
-        assert (inputs >= 0).all() and (inputs <= 1).all(), 'inputs must be in [0, 1]'
+        assert (inputs >= 0).all() and (inputs <= 1).all(), f'inputs must be in [0, 1]. min = {inputs.min()}, max = {inputs.max()}'
 
         feature_list = list()
 
