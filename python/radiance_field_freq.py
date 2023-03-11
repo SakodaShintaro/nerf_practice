@@ -42,7 +42,7 @@ class RadianceFieldFreq(nn.Module):
         self.sigma = nn.Linear(256, 1)
         self.layer9 = nn.Linear(256 + self.enc_dir.encoded_dim(), 128)
         self.skip2 = SkipConnection(128, 3)
-        self.rgb = nn.Linear(128, 3)
+        self.color = nn.Linear(128, 3)
 
     def forward(self, x: torch.Tensor, d: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
         """Apply function.
@@ -70,6 +70,6 @@ class RadianceFieldFreq(nn.Module):
         h = torch.cat([h, e_d], dim=1)
         h = F.relu(self.layer9(h))
         h = self.skip2(h)
-        color = torch.sigmoid(self.rgb(h))
+        color = torch.sigmoid(self.color(h))
 
         return color, sigma
