@@ -7,7 +7,8 @@ class HashEmbedder(nn.Module):
     def __init__(self, n_levels=16, n_features_per_level=2,
                  log2_hashmap_size=19, base_resolution=16, finest_resolution=512):
         super(HashEmbedder, self).__init__()
-        self.bounding_box = torch.tensor([[-2.0, -2.0, -2.0], [2.0, 2.0, 2.0]]).cuda()
+        bound = 3.0
+        self.bounding_box = torch.tensor([[-bound, -bound, -bound], [bound, bound, bound]]).cuda()
         self.n_levels = n_levels
         self.n_features_per_level = n_features_per_level
         self.log2_hashmap_size = log2_hashmap_size
