@@ -10,12 +10,12 @@
 #include "../utils.hpp"
 
 int main() {
-  const std::string dataset_path = "../data/train/greek/";
+  const std::string dataset_path = "/home/sakoda/data/converted/logiee/20230609_base_link_logiee/";
 
   const CameraIntrinsicParameter param = GetCameraIntrinsicParameter(dataset_path);
 
   const std::vector<std::string> pose_paths = Glob(dataset_path + "pose/");
-  const std::vector<std::string> image_paths = Glob(dataset_path + "rgb/");
+  const std::vector<std::string> image_paths = Glob(dataset_path + "images/");
   assert(pose_paths.size() == image_paths.size());
   const int32_t N = pose_paths.size();
   std::vector<Data> dataset_raw(N);
@@ -91,7 +91,7 @@ int main() {
         ss << e << "\t";
         ss << step << "\t";
         ss << epoch_rate << "\t";
-        ss << sum_loss << "\t";
+        ss << sum_loss;
         ofs << ss.str() << std::endl;
         std::cout << ss.str() << std::endl;
         sum_loss = 0;

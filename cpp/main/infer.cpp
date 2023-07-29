@@ -18,9 +18,9 @@ cv::Mat ToCvImage(torch::Tensor tensor) {
 }
 
 int main() {
-  const std::string dataset_path = "../data/train/greek/";
+  const std::string dataset_path = "/home/sakoda/data/converted/logiee/20230609_base_link_logiee/";
   const std::vector<std::string> pose_paths = Glob(dataset_path + "pose/");
-  const std::vector<std::string> image_paths = Glob(dataset_path + "rgb/");
+  const std::vector<std::string> image_paths = Glob(dataset_path + "images/");
   assert(pose_paths.size() == image_paths.size());
   const int32_t N = pose_paths.size();
   std::vector<Data> dataset_raw(N);
@@ -49,19 +49,12 @@ int main() {
   constexpr int32_t kNum = 64;
   constexpr int32_t kBatchSize = 2048;
 
-  Pose base_pose = dataset_raw[200].pose;
-
-  for (int32_t ind = 0; ind < kNum; ind++) {
+  for (int32_t ind = 0; ind < N; ind++) {
     const float a = -M_PI + (2 * M_PI) / kNum * ind;
     const float c = std::cos(a);
     const float s = std::sin(a);
     Data data;
-    data.pose = Eigen::Matrix4f::Identity();
-    data.pose(0, 0) = c;
-    data.pose(0, 2) = -s;
-    data.pose(2, 0) = s;
-    data.pose(2, 2) = c;
-    data.pose = data.pose * base_pose;
+    data.pose = dataset_raw[ind].pose;
     data.image = cv::Mat::zeros(param.height, param.width, CV_32F);
     std::vector<RayData> ray_data = GetRays(param, data);
     const int32_t n_sample = ray_data.size();

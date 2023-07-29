@@ -7,11 +7,15 @@ set(CMAKE_CXX_FLAGS "-march=native")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG")
 
 # LibTorch
-list(APPEND CMAKE_PREFIX_PATH ../../libtorch-1.13.1)
+list(APPEND CMAKE_PREFIX_PATH /home/sakoda/work/f2-nerf/External/libtorch)
 find_package(Torch REQUIRED)
 
 # OpenCV
 find_package(OpenCV REQUIRED)
+
+# YAML
+include_directories(/home/sakoda/work/f2-nerf/External/yaml-cpp/include)
+link_libraries(yaml-cpp)
 
 # ソース
 file(GLOB SRCS ./*.cpp)

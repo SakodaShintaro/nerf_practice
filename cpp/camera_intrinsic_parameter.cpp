@@ -1,26 +1,20 @@
 #include "camera_intrinsic_parameter.hpp"
 
+#include <yaml-cpp/yaml.h>
+
 #include <fstream>
 #include <iostream>
 
 CameraIntrinsicParameter GetCameraIntrinsicParameter(const std::string& dataset_path) {
-  std::ifstream ifs_intrinsics(dataset_path + "intrinsics.txt");
+  YAML::Node camera_info = YAML::LoadFile(dataset_path + "/camera_info.yaml");
+  YAML::Node intrinsic_node = camera_info["K"];
 
-  // 1行目
-  float f, cx, cy, _;
-  ifs_intrinsics >> f >> cx >> cy >> _;
+  float f = intrinsic_node[0].as<float>();
+  float cx = intrinsic_node[2].as<float>();
+  float cy = intrinsic_node[5].as<float>();
 
-  // 2行目
-  float origin_x, origin_y, origin_z;
-  ifs_intrinsics >> origin_x >> origin_y >> origin_z;
-
-  // 3行目
-  float near_plane;
-  ifs_intrinsics >> near_plane >> _;
-
-  // 4行目
-  float img_height, img_width;
-  ifs_intrinsics >> img_height >> img_width;
+  float img_width = camera_info["width"].as<float>();
+  float img_height = camera_info["height"].as<float>();
 
   std::cout << "Original" << std::endl;
   std::cout << "focal_length: " << f << std::endl;
@@ -39,11 +33,13 @@ CameraIntrinsicParameter GetCameraIntrinsicParameter(const std::string& dataset_
   result.cy = cy * height / img_height;
   result.width = width;
   result.height = height;
+
   std::cout << "Resized" << std::endl;
   std::cout << "focal_length: " << f << std::endl;
   std::cout << "image_center: "
             << "(" << cx << ", " << cy << ")" << std::endl;
   std::cout << "image size  : "
             << "(" << height << ", " << width << ")" << std::endl;
+
   return result;
 }
