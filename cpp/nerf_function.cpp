@@ -2,13 +2,13 @@
 
 #include <random>
 
-torch::Tensor SplitRay(float t_n, float t_f, int32_t N, int32_t batch_size) {
-  const float width = t_f - t_n;
+torch::Tensor SplitRay(float t_near, float t_far, int32_t N, int32_t batch_size) {
+  const float width = t_far - t_near;
   const float unit_width = width / N;
   std::vector<float> partition;
-  partition.push_back(t_n);
+  partition.push_back(t_near);
   for (int32_t i = 0; i < N; i++) {
-    partition.push_back(t_n + unit_width * (i + 1));
+    partition.push_back(t_near + unit_width * (i + 1));
   }
   torch::Tensor result = torch::tensor(partition);
   result = result.view({1, N + 1});
@@ -59,9 +59,9 @@ torch::Tensor _pcpdf(torch::Tensor partition, torch::Tensor weights, int32_t N_s
   return sample;
 }
 
-torch::Tensor SampleFine(torch::Tensor partition, torch::Tensor weights, torch::Tensor t_c, int32_t N_f) {
-  torch::Tensor t_f = _pcpdf(partition, weights, N_f);
-  torch::Tensor t = torch::concatenate({t_c, t_f}, 1);
+torch::Tensor SampleFine(torch::Tensor partition, torch::Tensor weights, torch::Tensor t_c, int32_t kNumFine) {
+  torch::Tensor t_far = _pcpdf(partition, weights, kNumFine);
+  torch::Tensor t = torch::concatenate({t_c, t_far}, 1);
   auto [tt, _] = torch::sort(t, 1);
   return tt;
 }

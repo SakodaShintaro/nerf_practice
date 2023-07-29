@@ -14,14 +14,13 @@ class NeRFImpl : public torch::nn::Module {
   std::pair<torch::Tensor, torch::Tensor> forward(torch::Tensor o, torch::Tensor d);
 
  private:
-  static constexpr int32_t N_c = 64;
-  static constexpr int32_t N_f = 128;
-  static constexpr int32_t N_SAMPLES = 2048;
-  float t_n;
-  float t_f;
-  cv::Vec3b c_bg;  // 背景の色
-  RadianceField rf_c{nullptr};
-  RadianceField rf_f{nullptr};
+  static constexpr int32_t kNumCoarse = 64;
+  static constexpr int32_t kNumFine = 128;
+  const float t_near_;
+  const float t_far_;
+  const cv::Vec3b back_ground_color_;
+  RadianceField rf_coarse_{nullptr};
+  RadianceField rf_fine_{nullptr};
 };
 
 TORCH_MODULE(NeRF);
