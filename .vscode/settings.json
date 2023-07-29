@@ -1,0 +1,4 @@
+{
+    "cmake.sourceDirectory": "/home/sakoda/work/nerf_practice/cpp",
+    "cmake.buildDirectory": "${workspaceFolder}/build-${buildType}",
+}
