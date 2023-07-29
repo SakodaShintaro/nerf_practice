@@ -31,11 +31,12 @@ int main() {
   }
 
   CameraIntrinsicParameter param = GetCameraIntrinsicParameter(dataset_path);
-  param.f /= 2;
-  param.cx /= 2;
-  param.cy /= 2;
-  param.width /= 2;
-  param.height /= 2;
+  constexpr int32_t kDownScale = 16;
+  param.f /= kDownScale;
+  param.cx /= kDownScale;
+  param.cy /= kDownScale;
+  param.width /= kDownScale;
+  param.height /= kDownScale;
 
   NeRF nerf;
   torch::load(nerf, "./result_dir/train/nerf_model.pt");
