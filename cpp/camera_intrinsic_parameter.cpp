@@ -23,23 +23,12 @@ CameraIntrinsicParameter GetCameraIntrinsicParameter(const std::string& dataset_
   std::cout << "image size  : "
             << "(" << img_height << ", " << img_width << ")" << std::endl;
 
-  // データセットでの画像サイズ
-  constexpr int32_t width = 512;
-  constexpr int32_t height = 512;
-
   CameraIntrinsicParameter result;
-  result.f = f * height / img_height;
-  result.cx = cx * width / img_width;
-  result.cy = cy * height / img_height;
-  result.width = width;
-  result.height = height;
-
-  std::cout << "Resized" << std::endl;
-  std::cout << "focal_length: " << f << std::endl;
-  std::cout << "image_center: "
-            << "(" << cx << ", " << cy << ")" << std::endl;
-  std::cout << "image size  : "
-            << "(" << height << ", " << width << ")" << std::endl;
+  result.f = f;
+  result.cx = cx;
+  result.cy = cy;
+  result.width = img_width;
+  result.height = img_height;
 
   return result;
 }
