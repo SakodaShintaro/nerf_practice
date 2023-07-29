@@ -30,8 +30,8 @@ int main() {
 
   constexpr int32_t kEpoch = 1;
   constexpr int32_t kBatchSize = 2048;
-  constexpr int32_t kMaxStep = 1000;
-  constexpr int32_t kPrintInterval = 100;
+  constexpr int32_t kMaxStep = 20000;
+  constexpr int32_t kPrintInterval = 200;
 
   NeRF nerf;
   nerf->to(torch::kCUDA);
