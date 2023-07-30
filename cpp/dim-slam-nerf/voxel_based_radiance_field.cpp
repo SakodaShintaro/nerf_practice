@@ -35,16 +35,14 @@ VoxelBasedRadianceFieldImpl::VoxelBasedRadianceFieldImpl() {
   grids_lens_ = {0.64, 0.48, 0.32, 0.24, 0.16, 0.12, 0.08};
   bound_ = torch::tensor({{-1, 1}, {-1, 1}, {-1, 1}});
   const int grids_dim = 4;
-  torch::Tensor xyz_len_ = (bound_.index({Slice(), 1}) - bound_.index({Slice(), 0})).to(torch::kFloat);
-
-  std::vector<float> xyz_len(xyz_len_.data_ptr<float>(), xyz_len_.data_ptr<float>() + xyz_len_.numel());
+  torch::Tensor xyz_len = (bound_.index({Slice(), 1}) - bound_.index({Slice(), 0})).to(torch::kFloat);
 
   for (int64_t i = 0; i < grids_lens_.size(); i++) {
     const double grid_len = grids_lens_[i];
     std::vector<int64_t> grid_shape;
-    grid_shape.push_back(xyz_len[0] / grid_len);
-    grid_shape.push_back(xyz_len[1] / grid_len);
-    grid_shape.push_back(xyz_len[2] / grid_len);
+    grid_shape.push_back(xyz_len[0].item<float>() / grid_len);
+    grid_shape.push_back(xyz_len[1].item<float>() / grid_len);
+    grid_shape.push_back(xyz_len[2].item<float>() / grid_len);
     std::swap(grid_shape[0], grid_shape[2]);
 
     std::vector<int64_t> grid_true_shape = {1, grids_dim};
