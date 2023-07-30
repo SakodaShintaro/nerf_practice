@@ -4,7 +4,7 @@
 #include <random>
 
 #include "../data.hpp"
-#include "../dim-slam-nerf/nerf.hpp"
+#include "../dim-slam-nerf/voxel_based_radiance_field.hpp"
 #include "../nerf_function.hpp"
 #include "../timer.hpp"
 #include "../utils.hpp"

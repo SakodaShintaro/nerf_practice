@@ -1,7 +1,7 @@
 // The original python implementation is https://github.com/HKUST-3DV/DIM-SLAM/blob/main/src/nerf.py
 
-#ifndef DIM_SLAM_NERF__NERF_HPP_
-#define DIM_SLAM_NERF__NERF_HPP_
+#ifndef DIM_SLAM_NERF__VOXEL_BASED_RADIANCE_FIELD_HPP_
+#define DIM_SLAM_NERF__VOXEL_BASED_RADIANCE_FIELD_HPP_
 
 #include <torch/torch.h>
 

@@ -1,4 +1,4 @@
-#include "nerf.hpp"
+#include "voxel_based_radiance_field.hpp"
 
 using namespace torch::indexing;
 
