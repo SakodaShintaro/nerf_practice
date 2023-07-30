@@ -5,15 +5,15 @@
 
 class BasicRadianceFieldImpl : public torch::nn::Module {
  public:
-  BasicRadianceFieldImpl(const int32_t _L_x = 10, const int32_t _L_d = 4);
+  BasicRadianceFieldImpl();
 
   std::pair<torch::Tensor, torch::Tensor> forward(torch::Tensor x, torch::Tensor d);
 
  private:
   torch::Tensor gamma(torch::Tensor p, int32_t L);
 
-  const int32_t L_x;
-  const int32_t L_d;
+  const int32_t L_x = 10;
+  const int32_t L_d = 4;
   torch::nn::Linear layer0_{nullptr};
   torch::nn::Linear layer1_{nullptr};
   torch::nn::Linear layer2_{nullptr};

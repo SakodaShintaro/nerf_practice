@@ -5,8 +5,8 @@
 NeRFImpl::NeRFImpl(float _t_n, float _t_f, int32_t _L_x, int32_t _L_d, cv::Vec3b _c_bg)
     : t_near_(_t_n), t_far_(_t_f), back_ground_color_(_c_bg) {
   using namespace torch::nn;
-  rf_coarse_ = register_module("rf_coarse_", RadianceField(_L_x, _L_d));
-  rf_fine_ = register_module("rf_fine_", RadianceField(_L_x, _L_d));
+  rf_coarse_ = register_module("rf_coarse_", RadianceField());
+  rf_fine_ = register_module("rf_fine_", RadianceField());
 }
 
 torch::Device NeRFImpl::device() { return rf_coarse_->parameters().front().device(); }

@@ -1,6 +1,6 @@
 #include "basic_radiance_field.hpp"
 
-BasicRadianceFieldImpl::BasicRadianceFieldImpl(const int32_t _L_x, const int32_t _L_d) : L_x(_L_x), L_d(_L_d) {
+BasicRadianceFieldImpl::BasicRadianceFieldImpl() {
   using namespace torch::nn;
   layer0_ = register_module("layer0_", Linear(6 * L_x, 256));
   layer1_ = register_module("layer1_", Linear(256, 256));
