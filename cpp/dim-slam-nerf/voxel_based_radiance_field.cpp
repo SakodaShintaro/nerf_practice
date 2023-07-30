@@ -23,7 +23,9 @@ torch::Tensor BasicMLPImpl::forward(torch::Tensor input) {
       x = torch::cat({x, input}, -1);
     }
     x = layers_[i]->as<torch::nn::Linear>()->forward(x);
-    x = torch::relu(x);
+    if (i != layers_->size() - 1) {
+      x = torch::relu(x);
+    }
   }
   return x;
 }
@@ -106,5 +108,9 @@ std::pair<torch::Tensor, torch::Tensor> VoxelBasedRadianceFieldImpl::forward(tor
 
   torch::Tensor alpha = alpha_decoder_->forward(raw_alpha_input_cat);
   torch::Tensor color = color_decoder_->forward(raw_color_input_cat);
+
+  alpha = torch::relu(alpha);
+  color = torch::sigmoid(color);
+
   return {color, alpha};
 }
