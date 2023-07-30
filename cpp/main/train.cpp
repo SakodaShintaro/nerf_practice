@@ -19,11 +19,14 @@ int main() {
   assert(pose_paths.size() == image_paths.size());
   const int32_t N = pose_paths.size();
   std::vector<Data> dataset_raw(N);
-  std::vector<RayData> ray_data;
   for (int32_t i = 0; i < N; i++) {
     std::cout << pose_paths[i] << " " << image_paths[i] << std::endl;
     dataset_raw[i].pose = ParsePose(pose_paths[i]);
     dataset_raw[i].image = cv::imread(image_paths[i]);
+  }
+  normalize(dataset_raw);
+  std::vector<RayData> ray_data;
+  for (int32_t i = 0; i < N; i++) {
     std::vector<RayData> curr_rays = GetRays(param, dataset_raw[i]);
     ray_data.insert(ray_data.end(), curr_rays.begin(), curr_rays.end());
   }

@@ -29,6 +29,7 @@ int main() {
     dataset_raw[i].pose = ParsePose(pose_paths[i]);
     dataset_raw[i].image = cv::imread(image_paths[i]);
   }
+  normalize(dataset_raw);
 
   CameraIntrinsicParameter param = GetCameraIntrinsicParameter(dataset_path);
   constexpr int32_t kDownScale = 16;
