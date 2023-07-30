@@ -89,9 +89,9 @@ std::pair<torch::Tensor, torch::Tensor> _rgb_and_weight(RadianceField func, torc
   x = x.view({batch_size * N, -1});
   d = d.view({batch_size * N, -1});
 
-  auto [rgb, sigma] = func(x, d);
+  auto [color, sigma] = func(x, d);
 
-  rgb = rgb.view({batch_size, N, -1});
+  color = color.view({batch_size, N, -1});
   sigma = sigma.view({batch_size, N, -1});
 
   torch::Tensor tl = t.index({Slice(None, None), Slice(None, -1)});
@@ -105,7 +105,7 @@ std::pair<torch::Tensor, torch::Tensor> _rgb_and_weight(RadianceField func, torc
   torch::Tensor alpha = 1 - torch::exp(-mass_r);
   torch::Tensor T = torch::exp(-torch::cumsum(mass_l, 1));
   torch::Tensor w = T * alpha;
-  return std::make_pair(rgb, w);
+  return std::make_pair(color, w);
 }
 
 std::vector<RayData> GetRays(const CameraIntrinsicParameter& param, const Data& data) {

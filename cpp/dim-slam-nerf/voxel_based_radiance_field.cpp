@@ -23,9 +23,7 @@ torch::Tensor BasicMLPImpl::forward(torch::Tensor input) {
       x = torch::cat({x, input}, -1);
     }
     x = layers_[i]->as<torch::nn::Linear>()->forward(x);
-    if (i != layers_->size() - 1) {
-      x = torch::relu(x);
-    }
+    x = torch::relu(x);
   }
   return x;
 }
