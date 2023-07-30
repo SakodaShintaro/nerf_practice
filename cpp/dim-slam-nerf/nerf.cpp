@@ -33,7 +33,7 @@ torch::Tensor BasicMLPImpl::forward(torch::Tensor input) {
 VoxelBasedRadianceFieldImpl::VoxelBasedRadianceFieldImpl() {
   // Assuming fixed values for grids_lens_ and bound_.
   grids_lens_ = {0.64, 0.48, 0.32, 0.24, 0.16, 0.12, 0.08};
-  bound_ = torch::tensor({{-1, 1}, {-1, 1}, {1, 1}});
+  bound_ = torch::tensor({{-1, 1}, {-1, 1}, {-1, 1}});
   const int grids_dim = 4;
   torch::Tensor xyz_len_ = (bound_.index({Slice(), 1}) - bound_.index({Slice(), 0})).to(torch::kFloat);
 
@@ -74,7 +74,7 @@ VoxelBasedRadianceFieldImpl::VoxelBasedRadianceFieldImpl() {
 
 torch::Tensor VoxelBasedRadianceFieldImpl::normalize_3d_coordinate(torch::Tensor p, double grid_len,
                                                                    std::vector<int64_t> grid_shape) {
-  auto grid_xyz = torch::tensor(grid_shape).to(torch::kFloat) * grid_len;
+  torch::Tensor grid_xyz = torch::tensor(grid_shape).to(torch::kFloat) * grid_len;
   p = p.view({-1, 3});
   p.index({Slice(), 0}) = ((p.index({Slice(), 0}) - bound_.index({0, 0})) / grid_xyz[2]) * 2 - 1.0;
   p.index({Slice(), 1}) = ((p.index({Slice(), 1}) - bound_.index({1, 0})) / grid_xyz[1]) * 2 - 1.0;
@@ -88,16 +88,17 @@ std::pair<torch::Tensor, torch::Tensor> VoxelBasedRadianceFieldImpl::forward(tor
 
   for (int64_t i = 0; i < grids_feat_.size(); i++) {
     torch::Tensor p_norm = normalize_3d_coordinate(x.clone(), grids_lens_[i], grids_shape_[i]).unsqueeze(0);
-    torch::Tensor c =
-        torch::grid_sampler(grids_feat_[i], p_norm.index({Slice(), Slice(), None, None}).to(torch::kFloat),
-                            0,      // mode='bilinear', padding_mode='zeros'
-                            false,  // align_corners
-                            false   // grid_sampler
-                            )
-            .squeeze(-1)
-            .squeeze(-1)
-            .transpose(1, 2)
-            .squeeze(0);
+    p_norm = p_norm.index({Slice(), Slice(), None, None}).to(torch::kFloat);
+    torch::Tensor c = torch::grid_sampler(grids_feat_[i],  // input
+                                          p_norm,          // grid_points
+                                          0,               // mode='bilinear', padding_mode='zeros'
+                                          false,           // align_corners
+                                          false            // grid_sampler
+                                          )
+                          .squeeze(-1)
+                          .squeeze(-1)
+                          .transpose(1, 2)
+                          .squeeze(0);
     raw_alpha_input.push_back(c.index({Slice(), -1}).view({-1, 1}));
     raw_color_input.push_back(c.index({Slice(), Slice(None, 3)}));
   }
