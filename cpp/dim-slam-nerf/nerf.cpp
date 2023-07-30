@@ -62,7 +62,7 @@ VoxelBasedRadianceFieldImpl::VoxelBasedRadianceFieldImpl() {
                             static_cast<int64_t>(5),    // n_blocks,
                             static_cast<int64_t>(2)     // skip,
   );
-  color_decoder_ = BasicMLP(static_cast<int64_t>(6),
+  color_decoder_ = BasicMLP(static_cast<int64_t>(grids_lens_.size() * 3),
                             static_cast<int64_t>(256),  // hidden_dim,
                             static_cast<int64_t>(3),    // output_dim,
                             static_cast<int64_t>(5),    // n_blocks,
