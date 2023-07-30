@@ -12,8 +12,7 @@ using torch::indexing::Slice;
 
 class BasicMLPImpl : public torch::nn::Module {
  public:
-  BasicMLPImpl(int64_t input_dim = 3, int64_t hidden_dim = 32, int64_t output_dim = 3, int64_t n_blocks = 5,
-               int64_t skip = 2)
+  BasicMLPImpl(int64_t input_dim, int64_t hidden_dim, int64_t output_dim, int64_t n_blocks, int64_t skip)
       : skip_(skip) {
     for (int64_t i = 0; i < n_blocks; i++) {
       int64_t layer_input_dim = (i == 0 ? input_dim : hidden_dim);
@@ -146,7 +145,8 @@ class NeRFImpl : public torch::nn::Module {
   torch::Tensor bound_;
   int grids_dim_;
   std::vector<torch::Tensor> grids_xyz_;
-  BasicMLP alpha_decoder_, color_decoder_;
+  BasicMLP alpha_decoder_ = nullptr;
+  BasicMLP color_decoder_ = nullptr;
 };
 
 TORCH_MODULE(NeRF);
