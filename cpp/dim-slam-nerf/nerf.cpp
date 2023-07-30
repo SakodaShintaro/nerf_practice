@@ -30,7 +30,7 @@ torch::Tensor BasicMLPImpl::forward(torch::Tensor input) {
   return x;
 }
 
-NeRFImpl::NeRFImpl() {
+VoxelBasedRadianceFieldImpl::VoxelBasedRadianceFieldImpl() {
   // Assuming fixed values for grids_lens_ and bound_.
   grids_lens_ = {0.64, 0.48, 0.32, 0.24, 0.16, 0.12, 0.08};
   bound_ = torch::tensor({{-1, 1}, {-1, 1}, {1, 1}});
@@ -72,7 +72,8 @@ NeRFImpl::NeRFImpl() {
   register_module("color_decoder_", color_decoder_);
 }
 
-torch::Tensor NeRFImpl::normalize_3d_coordinate(torch::Tensor p, double grid_len, std::vector<int64_t> grid_shape) {
+torch::Tensor VoxelBasedRadianceFieldImpl::normalize_3d_coordinate(torch::Tensor p, double grid_len,
+                                                                   std::vector<int64_t> grid_shape) {
   auto grid_xyz = torch::tensor(grid_shape).to(torch::kFloat) * grid_len;
   p = p.view({-1, 3});
   p.index({Slice(), 0}) = ((p.index({Slice(), 0}) - bound_.index({0, 0})) / grid_xyz[2]) * 2 - 1.0;
@@ -81,14 +82,12 @@ torch::Tensor NeRFImpl::normalize_3d_coordinate(torch::Tensor p, double grid_len
   return p;
 }
 
-torch::Tensor NeRFImpl::forward(torch::Tensor input) {
-  torch::Tensor p = input.clone();
-
+std::pair<torch::Tensor, torch::Tensor> VoxelBasedRadianceFieldImpl::forward(torch::Tensor x, torch::Tensor d) {
   std::vector<torch::Tensor> raw_alpha_input;
   std::vector<torch::Tensor> raw_color_input;
 
   for (int64_t i = 0; i < grids_feat_.size(); i++) {
-    torch::Tensor p_norm = normalize_3d_coordinate(p.clone(), grids_lens_[i], grids_shape_[i]).unsqueeze(0);
+    torch::Tensor p_norm = normalize_3d_coordinate(x.clone(), grids_lens_[i], grids_shape_[i]).unsqueeze(0);
     torch::Tensor c =
         torch::grid_sampler(grids_feat_[i], p_norm.index({Slice(), Slice(), None, None}).to(torch::kFloat),
                             0,      // mode='bilinear', padding_mode='zeros'
@@ -108,5 +107,5 @@ torch::Tensor NeRFImpl::forward(torch::Tensor input) {
 
   torch::Tensor alpha = alpha_decoder_->forward(raw_alpha_input_cat);
   torch::Tensor color = color_decoder_->forward(raw_color_input_cat);
-  return torch::cat({color, alpha}, -1);
+  return {color, alpha};
 }

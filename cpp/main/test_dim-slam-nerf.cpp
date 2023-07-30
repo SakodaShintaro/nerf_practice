@@ -30,7 +30,7 @@ void TestGetRays() {
   std::cout << "d = " << d << std::endl;
   std::cout << "C = " << C << std::endl;
 
-  NeRF nerf;
+  VoxelBasedRadianceField nerf;
   auto [C_c, C_f] = nerf->forward(o, d);
   std::cout << "C_c = " << C_c << std::endl;
   std::cout << "C_f = " << C_f << std::endl;

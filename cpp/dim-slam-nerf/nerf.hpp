@@ -16,11 +16,11 @@ class BasicMLPImpl : public torch::nn::Module {
 };
 TORCH_MODULE(BasicMLP);
 
-class NeRFImpl : public torch::nn::Module {
+class VoxelBasedRadianceFieldImpl : public torch::nn::Module {
  public:
-  NeRFImpl();
+  VoxelBasedRadianceFieldImpl();
   torch::Tensor normalize_3d_coordinate(torch::Tensor p, double grid_len, std::vector<int64_t> grid_shape);
-  torch::Tensor forward(torch::Tensor input);
+  std::pair<torch::Tensor, torch::Tensor> forward(torch::Tensor x, torch::Tensor d);
 
  private:
   std::vector<torch::Tensor> grids_feat_;
@@ -30,6 +30,6 @@ class NeRFImpl : public torch::nn::Module {
   BasicMLP alpha_decoder_ = nullptr;
   BasicMLP color_decoder_ = nullptr;
 };
-TORCH_MODULE(NeRF);
+TORCH_MODULE(VoxelBasedRadianceField);
 
 #endif
