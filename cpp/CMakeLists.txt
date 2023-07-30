@@ -19,6 +19,7 @@ link_libraries(yaml-cpp)
 
 # ソース
 file(GLOB SRCS ./*.cpp)
+list(APPEND SRCS ./dim-slam-nerf/nerf.cpp)
 
 # 実行ファイルの定義
 add_executable(train ./main/train.cpp ${SRCS})
