@@ -51,6 +51,8 @@ VoxelBasedRadianceFieldImpl::VoxelBasedRadianceFieldImpl() {
 
     grids_feat_.push_back(grid);
     grids_shape_.push_back(grid_shape);
+
+    register_parameter("grid_feat_" + std::to_string(i), grids_feat_[i]);
   }
 
   // Assume args.nerf.decoder is "basic_MLP"
