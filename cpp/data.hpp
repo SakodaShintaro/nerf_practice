@@ -13,4 +13,6 @@ struct Data {
 
 Pose ParsePose(const std::string& path);
 
+void normalize(std::vector<Data>& data);
+
 #endif
