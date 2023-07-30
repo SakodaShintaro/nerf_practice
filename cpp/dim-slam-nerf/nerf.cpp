@@ -1,6 +1,6 @@
 #include "nerf.hpp"
 
-using namespace torch::nn;
+using namespace torch::indexing;
 
 BasicMLPImpl::BasicMLPImpl(int64_t input_dim, int64_t hidden_dim, int64_t output_dim, int64_t n_blocks, int64_t skip)
     : skip_(skip) {
@@ -11,7 +11,7 @@ BasicMLPImpl::BasicMLPImpl(int64_t input_dim, int64_t hidden_dim, int64_t output
     }
 
     int64_t layer_output_dim = ((i == n_blocks - 1) ? output_dim : hidden_dim);
-    layers_->push_back(Linear(layer_input_dim, layer_output_dim));
+    layers_->push_back(torch::nn::Linear(layer_input_dim, layer_output_dim));
   }
   register_module("layers_", layers_);
 }
@@ -35,8 +35,7 @@ NeRFImpl::NeRFImpl() {
   grids_lens_ = {0.64, 0.48, 0.32, 0.24, 0.16, 0.12, 0.08};
   bound_ = torch::tensor({{-1, 1}, {-1, 1}, {1, 1}});
   const int grids_dim = 4;
-  torch::Tensor xyz_len_ =
-      (bound_.index({torch::indexing::Slice(), 1}) - bound_.index({torch::indexing::Slice(), 0})).to(torch::kFloat);
+  torch::Tensor xyz_len_ = (bound_.index({Slice(), 1}) - bound_.index({Slice(), 0})).to(torch::kFloat);
 
   std::vector<float> xyz_len(xyz_len_.data_ptr<float>(), xyz_len_.data_ptr<float>() + xyz_len_.numel());
 
@@ -54,7 +53,6 @@ NeRFImpl::NeRFImpl() {
 
     grids_feat_.push_back(grid);
     grids_shape_.push_back(grid_shape);
-    grids_xyz_.push_back(torch::tensor(grid_shape).to(torch::kFloat) * grid_len);
   }
 
   // Assume args.nerf.decoder is "basic_MLP"
@@ -77,12 +75,9 @@ NeRFImpl::NeRFImpl() {
 torch::Tensor NeRFImpl::normalize_3d_coordinate(torch::Tensor p, double grid_len, std::vector<int64_t> grid_shape) {
   auto grid_xyz = torch::tensor(grid_shape).to(torch::kFloat) * grid_len;
   p = p.view({-1, 3});
-  p.index({torch::indexing::Slice(), 0}) =
-      ((p.index({torch::indexing::Slice(), 0}) - bound_.index({0, 0})) / grid_xyz[2]) * 2 - 1.0;
-  p.index({torch::indexing::Slice(), 1}) =
-      ((p.index({torch::indexing::Slice(), 1}) - bound_.index({1, 0})) / grid_xyz[1]) * 2 - 1.0;
-  p.index({torch::indexing::Slice(), 2}) =
-      ((p.index({torch::indexing::Slice(), 2}) - bound_.index({2, 0})) / grid_xyz[0]) * 2 - 1.0;
+  p.index({Slice(), 0}) = ((p.index({Slice(), 0}) - bound_.index({0, 0})) / grid_xyz[2]) * 2 - 1.0;
+  p.index({Slice(), 1}) = ((p.index({Slice(), 1}) - bound_.index({1, 0})) / grid_xyz[1]) * 2 - 1.0;
+  p.index({Slice(), 2}) = ((p.index({Slice(), 2}) - bound_.index({2, 0})) / grid_xyz[0]) * 2 - 1.0;
   return p;
 }
 
@@ -93,22 +88,19 @@ torch::Tensor NeRFImpl::forward(torch::Tensor input) {
   std::vector<torch::Tensor> raw_color_input;
 
   for (int64_t i = 0; i < grids_feat_.size(); i++) {
-    auto p_norm = normalize_3d_coordinate(p.clone(), grids_lens_[i], grids_shape_[i]).unsqueeze(0);
-    auto c = torch::grid_sampler(grids_feat_[i],
-                                 p_norm
-                                     .index({torch::indexing::Slice(), torch::indexing::Slice(), torch::indexing::None,
-                                             torch::indexing::None})
-                                     .to(torch::kFloat),
-                                 0,      // mode='bilinear', padding_mode='zeros'
-                                 false,  // align_corners
-                                 false   // grid_sampler
-                                 )
-                 .squeeze(-1)
-                 .squeeze(-1)
-                 .transpose(1, 2)
-                 .squeeze(0);
-    raw_alpha_input.push_back(c.index({torch::indexing::Slice(), -1}).view({-1, 1}));
-    raw_color_input.push_back(c.index({torch::indexing::Slice(), torch::indexing::Slice(torch::indexing::None, 3)}));
+    torch::Tensor p_norm = normalize_3d_coordinate(p.clone(), grids_lens_[i], grids_shape_[i]).unsqueeze(0);
+    torch::Tensor c =
+        torch::grid_sampler(grids_feat_[i], p_norm.index({Slice(), Slice(), None, None}).to(torch::kFloat),
+                            0,      // mode='bilinear', padding_mode='zeros'
+                            false,  // align_corners
+                            false   // grid_sampler
+                            )
+            .squeeze(-1)
+            .squeeze(-1)
+            .transpose(1, 2)
+            .squeeze(0);
+    raw_alpha_input.push_back(c.index({Slice(), -1}).view({-1, 1}));
+    raw_color_input.push_back(c.index({Slice(), Slice(None, 3)}));
   }
 
   torch::Tensor raw_alpha_input_cat = torch::cat(raw_alpha_input, -1);

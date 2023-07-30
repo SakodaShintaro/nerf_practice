@@ -27,7 +27,6 @@ class NeRFImpl : public torch::nn::Module {
   std::vector<std::vector<int64_t>> grids_shape_;
   std::vector<double> grids_lens_;
   torch::Tensor bound_;
-  std::vector<torch::Tensor> grids_xyz_;
   BasicMLP alpha_decoder_ = nullptr;
   BasicMLP color_decoder_ = nullptr;
 };
